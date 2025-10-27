@@ -55,6 +55,6 @@ REACT_APP_IPFS_GATEWAY_URL=https://ipfs.io/ipfs
 
 Ok "Testnet config written!"
 Say "`nNext steps:"
-Say "  1. Start backend: cd backend && `$env:ENV='production'; uvicorn server:app --port 8001 --reload"
+Say "  1. Start backend: cd backend && `$env:ENV='production'; python -m uvicorn server:app --port 8001 --reload"
 Say "  2. Start frontend: cd frontend && npm start"
 Say "  3. Open: http://localhost:3000"

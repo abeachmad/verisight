@@ -18,7 +18,7 @@ if (-not (Test-Path $testsDir)) { New-Item -ItemType Directory -Path $testsDir |
 
 # Start backend
 Say "Starting backend..."
-$backendProc = Start-Process powershell -ArgumentList "-NoExit","-Command","cd '$backendDir'; `$env:ENV='development'; uvicorn server:app --host 127.0.0.1 --port 8001" -PassThru -WindowStyle Hidden
+$backendProc = Start-Process powershell -ArgumentList "-NoExit","-Command","cd '$backendDir'; `$env:ENV='development'; python -m uvicorn server:app --host 127.0.0.1 --port 8001" -PassThru -WindowStyle Hidden
 Start-Sleep -Seconds 5
 
 # Start frontend

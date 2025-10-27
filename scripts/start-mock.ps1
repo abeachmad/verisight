@@ -9,7 +9,7 @@ Write-Host "Starting backend + frontend (mock mode)...`n" -ForegroundColor Yello
 
 # Start backend in new window
 $backendDir = Join-Path $PSScriptRoot '..\backend'
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendDir'; `$env:ENV='development'; uvicorn server:app --host 127.0.0.1 --port 8001 --reload"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendDir'; `$env:ENV='development'; python -m uvicorn server:app --host 127.0.0.1 --port 8001 --reload"
 
 Start-Sleep -Seconds 2
 
