@@ -1,0 +1,1 @@
+"""Oracle layer for blockchain integration"""
