@@ -1,0 +1,111 @@
+name: Release Wave
+
+on:
+  push:
+    tags:
+      - 'wave-*'
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract wave number
+        id: wave
+        run: |
+          WAVE_TAG=${GITHUB_REF#refs/tags/}
+          echo "tag=$WAVE_TAG" >> $GITHUB_OUTPUT
+          echo "number=${WAVE_TAG#wave-}" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog for this wave
+        id: changelog
+        run: |
+          # Extract changelog section for this wave
+          WAVE_NUM="${{ steps.wave.outputs.number }}"
+          
+          # Get changelog content between this wave and next section
+          CHANGELOG=$(awk "/## Wave $WAVE_NUM/,/^## /" CHANGELOG.md | sed '$d' | tail -n +2)
+          
+          # Save to file for GitHub Release
+          echo "$CHANGELOG" > release_notes.md
+          
+          # Also output for debugging
+          echo "Extracted changelog for Wave $WAVE_NUM"
+
+      - name: Set up Rust (optional - for WASM build)
+        if: false  # Set to true to enable WASM build
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+      - name: Build WASM contracts (optional)
+        if: false  # Set to true to enable WASM build
+        run: |
+          cd linera
+          cargo build --release --target wasm32-unknown-unknown
+          
+      - name: Upload WASM artifacts (optional)
+        if: false  # Set to true to enable WASM upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-contracts-${{ steps.wave.outputs.tag }}
+          path: |
+            linera/target/wasm32-unknown-unknown/release/oracle_feed.wasm
+            linera/target/wasm32-unknown-unknown/release/market.wasm
+
+      - name: Read testnet config
+        id: testnet
+        run: |
+          # Try to extract APP_IDs from config file
+          if [ -f "configs/linera.testnet.env" ]; then
+            ORACLE_APP_ID=$(grep LINERA_ORACLEFEED_APP_ID configs/linera.testnet.env | cut -d'=' -f2)
+            MARKET_APP_ID=$(grep LINERA_MARKET_APP_ID configs/linera.testnet.env | cut -d'=' -f2)
+            
+            echo "oracle_app_id=$ORACLE_APP_ID" >> $GITHUB_OUTPUT
+            echo "market_app_id=$MARKET_APP_ID" >> $GITHUB_OUTPUT
+          else
+            echo "oracle_app_id=<not deployed>" >> $GITHUB_OUTPUT
+            echo "market_app_id=<not deployed>" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release body
+        run: |
+          cat release_notes.md > final_release_notes.md
+          echo "" >> final_release_notes.md
+          echo "---" >> final_release_notes.md
+          echo "" >> final_release_notes.md
+          echo "## 🚀 Linera Testnet Deployment" >> final_release_notes.md
+          echo "" >> final_release_notes.md
+          echo "- **Network**: Linera Testnet (https://rpc.testnet.linera.net)" >> final_release_notes.md
+          echo "- **OracleFeed APP_ID**: \`${{ steps.testnet.outputs.oracle_app_id }}\`" >> final_release_notes.md
+          echo "- **Market APP_ID**: \`${{ steps.testnet.outputs.market_app_id }}\`" >> final_release_notes.md
+          echo "" >> final_release_notes.md
+          echo "### 📚 Documentation" >> final_release_notes.md
+          echo "" >> final_release_notes.md
+          echo "- [Submission Guide](docs/SUBMISSION.md)" >> final_release_notes.md
+          echo "- [On-Chain Architecture](docs/ONCHAIN.md)" >> final_release_notes.md
+          echo "- [Demo Recording Script](scripts/record_demo.md)" >> final_release_notes.md
+          echo "" >> final_release_notes.md
+          echo "### 🔗 Quick Links" >> final_release_notes.md
+          echo "" >> final_release_notes.md
+          echo "- [Frontend Demo](http://localhost:3000)" >> final_release_notes.md
+          echo "- [Backend API](http://localhost:8001/api)" >> final_release_notes.md
+          echo "- [Full Changelog](CHANGELOG.md)" >> final_release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Wave ${{ steps.wave.outputs.number }}
+          body_path: final_release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -12,6 +12,8 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError
 import json
+import hashlib
+import asyncio
 
 # Import AI agents
 from ai_agents.event_detector import EventDetectorAgent
@@ -19,6 +21,10 @@ from ai_agents.source_verifier import SourceVerifierAgent
 from ai_agents.confidence_scorer import ConfidenceScorerAgent
 from ai_agents.summary_composer import SummaryComposerAgent
 from oracle.linera_oracle import LineraOracleMock
+
+# Import Linera and IPFS clients
+from linera_client import publish_event as linera_publish_event, get_block_height as linera_get_block_height
+import ipfs_client
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -260,7 +266,7 @@ async def get_event(event_id: str):
 
 @api_router.post("/events/{event_id}/verify")
 async def verify_event(event_id: str, background_tasks: BackgroundTasks):
-    """Trigger AI verification of an event"""
+    """Trigger AI verification of an event and publish to Linera testnet"""
     event = await db.events.find_one({"id": event_id}, {"_id": 0})
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -448,6 +454,58 @@ async def get_agent_stats():
         "accuracy_rate": 0.94  # Mocked for now
     }
 
+@api_router.get("/health")
+async def health_check():
+    """Health check for all services"""
+    health_status = {
+        "mongo": {"status": "unknown", "latency_ms": 0},
+        "ipfs": {"status": "unknown", "latency_ms": 0},
+        "linera": {"status": "unknown", "latency_ms": 0, "block_height": 0}
+    }
+    
+    # Check MongoDB
+    try:
+        start = datetime.now()
+        await db.command("ping")
+        latency = (datetime.now() - start).total_seconds() * 1000
+        health_status["mongo"] = {"status": "healthy", "latency_ms": round(latency, 2)}
+    except Exception as e:
+        health_status["mongo"] = {"status": "unhealthy", "error": str(e)}
+    
+    # Check IPFS
+    try:
+        start = datetime.now()
+        is_healthy = await ipfs_client.check_health()
+        latency = (datetime.now() - start).total_seconds() * 1000
+        health_status["ipfs"] = {
+            "status": "healthy" if is_healthy else "unhealthy",
+            "latency_ms": round(latency, 2)
+        }
+    except Exception as e:
+        health_status["ipfs"] = {"status": "unhealthy", "error": str(e)}
+    
+    # Check Linera
+    try:
+        start = datetime.now()
+        block_height = await linera_get_block_height()
+        latency = (datetime.now() - start).total_seconds() * 1000
+        health_status["linera"] = {
+            "status": "healthy" if block_height > 0 else "unhealthy",
+            "latency_ms": round(latency, 2),
+            "block_height": block_height
+        }
+    except Exception as e:
+        health_status["linera"] = {"status": "unhealthy", "error": str(e)}
+    
+    overall_status = "healthy" if all(
+        s["status"] == "healthy" for s in health_status.values()
+    ) else "degraded"
+    
+    return {
+        "status": overall_status,
+        "services": health_status
+    }
+
 # WebSocket endpoint
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -461,7 +519,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 # Background task for AI verification
 async def run_ai_verification(event_id: str, event: dict):
-    """Run AI agents to verify an event"""
+    """Run AI agents to verify an event and publish to Linera testnet"""
     try:
         # Step 1: Detect event details
         detection_result = await event_detector.detect(event)
@@ -475,8 +533,38 @@ async def run_ai_verification(event_id: str, event: dict):
         # Step 4: Compose summary
         summary = await summary_composer.compose(confidence_result)
         
-        # Step 5: Publish to oracle
-        await oracle.publish_event(summary)
+        # Step 5: Calculate payload hash
+        payload_str = json.dumps(summary, sort_keys=True)
+        payload_hash = hashlib.sha256(payload_str.encode()).hexdigest()
+        
+        # Step 6: Upload summary to IPFS
+        env = os.getenv("ENV", "development")
+        cid = ""
+        tx_hash = ""
+        chain_id = ""
+        
+        if env == "production":
+            try:
+                cid = await ipfs_client.upload_json(summary)
+                
+                # Step 7: Publish to Linera testnet
+                result = await linera_publish_event(
+                    event_id=event_id,
+                    payload_hash=payload_hash,
+                    confidence=summary.get('confidence', 0.0),
+                    sources=summary.get('proof_links', []),
+                    cid=cid
+                )
+                tx_hash = result["tx_hash"]
+                chain_id = result["chain_id"]
+            except Exception as e:
+                logging.error(f"Error publishing to Linera/IPFS: {str(e)}")
+        else:
+            # Mock for development
+            await oracle.publish_event(summary)
+            cid = f"mock_cid_{event_id}"
+            tx_hash = f"mock_tx_{event_id}"
+            chain_id = "mock_chain"
         
         # Update event in database
         await db.events.update_one(
@@ -487,14 +575,23 @@ async def run_ai_verification(event_id: str, event: dict):
                 "confidence": summary.get('confidence'),
                 "proof_links": summary.get('proof_links', []),
                 "reasoning": summary.get('reasoning'),
-                "resolved_at": datetime.now(timezone.utc).isoformat()
+                "resolved_at": datetime.now(timezone.utc).isoformat(),
+                "onchain": {
+                    "tx_hash": tx_hash,
+                    "chain_id": chain_id,
+                    "cid": cid
+                }
             }}
         )
         
         # Broadcast update
         await manager.broadcast({
             "type": "event_verified",
-            "data": {"event_id": event_id, "summary": summary}
+            "data": {
+                "event_id": event_id,
+                "summary": summary,
+                "onchain": {"tx_hash": tx_hash, "chain_id": chain_id, "cid": cid}
+            }
         })
         
     except Exception as e:

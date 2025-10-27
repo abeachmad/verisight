@@ -1,0 +1,113 @@
+name: Linera Contracts CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'linera/**'
+      - '.github/workflows/linera-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'linera/**'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  build:
+    name: Build WASM Contracts
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        target: wasm32-unknown-unknown
+        override: true
+        components: rustfmt, clippy
+
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Cache cargo index
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Cache cargo build
+      uses: actions/cache@v3
+      with:
+        path: linera/target
+        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Check formatting
+      working-directory: ./linera
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy
+      working-directory: ./linera
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    - name: Build oracle_feed (WASM)
+      working-directory: ./linera
+      run: cargo build --release --target wasm32-unknown-unknown -p oracle_feed
+
+    - name: Build market (WASM)
+      working-directory: ./linera
+      run: cargo build --release --target wasm32-unknown-unknown -p market
+
+    - name: Run tests
+      working-directory: ./linera
+      run: cargo test --all-features
+
+    - name: Check WASM file sizes
+      working-directory: ./linera
+      run: |
+        echo "📊 WASM Contract Sizes:"
+        ls -lh target/wasm32-unknown-unknown/release/*.wasm
+        echo ""
+        echo "📦 oracle_feed.wasm:"
+        du -h target/wasm32-unknown-unknown/release/oracle_feed.wasm
+        echo "📦 market.wasm:"
+        du -h target/wasm32-unknown-unknown/release/market.wasm
+
+    - name: Upload WASM artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: linera-contracts
+        path: |
+          linera/target/wasm32-unknown-unknown/release/oracle_feed.wasm
+          linera/target/wasm32-unknown-unknown/release/market.wasm
+        retention-days: 30
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+
+    - name: Run security audit
+      working-directory: ./linera
+      run: cargo audit

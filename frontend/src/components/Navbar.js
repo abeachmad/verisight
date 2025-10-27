@@ -11,7 +11,7 @@ const Navbar = () => {
 
   const navLinks = [
     { path: '/markets', label: 'Markets' },
-    { path: '/create', label: 'Create' },
+    { path: '/events', label: 'Events' },
     { path: '/copytrading', label: 'Copy Trading' },
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/governance', label: 'Governance' }

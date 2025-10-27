@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, Clock, CheckCircle2, BarChart3 } from 'lucide-react';
+import { TrendingUp, Clock, CheckCircle2, BarChart3, ExternalLink, Link as LinkIcon, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const IPFS_GATEWAY = process.env.REACT_APP_IPFS_GATEWAY_URL || 'https://ipfs.io/ipfs';
+const LINERA_SERVICE = process.env.REACT_APP_LINERA_TESTNET_SERVICE_URL || 'https://rpc.testnet.linera.net';
 
 const MarketDetail = () => {
   const { id } = useParams();
@@ -23,10 +25,55 @@ const MarketDetail = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [betAmount, setBetAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [odds, setOdds] = useState(null);
+  const [copiedTx, setCopiedTx] = useState(false);
+  const oddsAbortController = React.useRef(null);
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedTx(true);
+      setTimeout(() => setCopiedTx(false), 2000);
+      toast.success('Copied to clipboard');
+    } catch (error) {
+      toast.error('Failed to copy');
+    }
+  };
 
   useEffect(() => {
     fetchMarketData();
+    const oddsInterval = setInterval(fetchOdds, 3000);
+    return () => {
+      clearInterval(oddsInterval);
+      if (oddsAbortController.current) {
+        oddsAbortController.current.abort();
+      }
+    };
   }, [id]);
+
+  const fetchOdds = async () => {
+    if (!market?.event_id) return;
+    
+    if (oddsAbortController.current) {
+      oddsAbortController.current.abort();
+    }
+    
+    oddsAbortController.current = new AbortController();
+    
+    try {
+      // Mock odds polling - replace with actual GraphQL query to Linera
+      const response = await axios.get(`${API}/markets/${id}`, {
+        signal: oddsAbortController.current.signal
+      });
+      if (response.data.options) {
+        setOdds(response.data.options);
+      }
+    } catch (error) {
+      if (error.name !== 'CanceledError') {
+        console.error('Error fetching odds:', error);
+      }
+    }
+  };
 
   const fetchMarketData = async () => {
     try {
@@ -75,7 +122,12 @@ const MarketDetail = () => {
       fetchMarketData(); // Refresh market data
     } catch (error) {
       console.error('Error placing prediction:', error);
-      toast.error('Failed to place prediction');
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to place prediction';
+      if (errorMsg.toLowerCase().includes('velocity') || errorMsg.toLowerCase().includes('cooldown')) {
+        toast.warning(errorMsg);
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -142,9 +194,10 @@ const MarketDetail = () => {
               <p className="text-[#A9B4C2] mb-6">{market.description}</p>
 
               {event && (
-                <div className="bg-[#0A0F1F]/50 rounded-lg p-4">
+                <div className="bg-[#0A0F1F]/50 rounded-lg p-4 space-y-3">
                   <h3 className="text-[#00FFFF] font-semibold mb-2">Event Details</h3>
                   <p className="text-[#A9B4C2] text-sm mb-2">{event.event_description}</p>
+                  
                   {event.confidence && (
                     <div className="flex items-center space-x-2">
                       <span className="text-[#A9B4C2] text-sm">AI Confidence:</span>
@@ -157,6 +210,75 @@ const MarketDetail = () => {
                       <span className="text-[#00FFFF] text-sm font-semibold">
                         {(event.confidence * 100).toFixed(0)}%
                       </span>
+                    </div>
+                  )}
+
+                  {event.onchain && (
+                    <div className="border-t border-[#00FFFF]/20 pt-3 mt-3 space-y-2">
+                      <h4 className="text-[#00FFFF] text-sm font-semibold flex items-center">
+                        <LinkIcon className="h-4 w-4 mr-2" />
+                        On-Chain Evidence
+                      </h4>
+                      
+                      {event.onchain.cid && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-[#A9B4C2]">IPFS:</span>
+                          <a
+                            href={`${IPFS_GATEWAY}/${event.onchain.cid}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#00FFFF] hover:underline flex items-center"
+                          >
+                            {event.onchain.cid.substring(0, 12)}...
+                            <ExternalLink className="h-3 w-3 ml-1" />
+                          </a>
+                        </div>
+                      )}
+                      
+                      {event.onchain.tx_hash && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-[#A9B4C2]">TX Hash:</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[#00FFFF] font-mono">
+                              {event.onchain.tx_hash.substring(0, 16)}...
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(event.onchain.tx_hash)}
+                              className="text-[#00FFFF] hover:text-[#00cccc] transition-colors"
+                              aria-label="Copy transaction hash"
+                            >
+                              {copiedTx ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {event.onchain.chain_id && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-[#A9B4C2]">Chain ID:</span>
+                          <span className="text-[#00FFFF] font-mono">{event.onchain.chain_id}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {event.proof_links && event.proof_links.length > 0 && (
+                    <div className="border-t border-[#00FFFF]/20 pt-3 mt-3">
+                      <h4 className="text-[#00FFFF] text-sm font-semibold mb-2">Sources</h4>
+                      <div className="space-y-1">
+                        {event.proof_links.map((link, idx) => (
+                          <a
+                            key={idx}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#A9B4C2] hover:text-[#00FFFF] text-xs flex items-center"
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            {new URL(link).hostname}
+                          </a>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -201,7 +323,7 @@ const MarketDetail = () => {
                   {/* Options */}
                   <div className="space-y-2">
                     <label className="text-[#A9B4C2] text-sm font-semibold">Select Option</label>
-                    {market.options?.map((option) => (
+                    {(odds || market.options)?.map((option) => (
                       <button
                         key={option.id}
                         onClick={() => setSelectedOption(option.id)}
@@ -245,7 +367,7 @@ const MarketDetail = () => {
                           {
                             (
                               parseFloat(betAmount) *
-                              (market.options.find((o) => o.id === selectedOption)?.odds || 1)
+                              ((odds || market.options).find((o) => o.id === selectedOption)?.odds || 1)
                             ).toFixed(2)
                           }
                         </span>
@@ -257,7 +379,7 @@ const MarketDetail = () => {
                           {
                             (
                               parseFloat(betAmount) *
-                                (market.options.find((o) => o.id === selectedOption)?.odds || 1) -
+                                ((odds || market.options).find((o) => o.id === selectedOption)?.odds || 1) -
                               parseFloat(betAmount)
                             ).toFixed(2)
                           }

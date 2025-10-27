@@ -1,4 +1,23 @@
-# Verisight - Truth in Real Time
+<!-- BEGIN KETTY:README_HEADER v1 -->
+# Verisight
+**AI-verified events → Linera microchains → real-time prediction markets**
+
+**Live Demo**: http://localhost:3000 • **GraphQL**: https://rpc.testnet.linera.net/chains/`<chain-id>`/applications/`<app-id>`
+
+**Linera Testnet**
+- OracleFeed `APP_ID=${ORACLEFEED_APP_ID}`
+- Market `APP_ID=${MARKET_APP_ID}`
+
+**Linera SDK/Protocol used**
+- Contract/Service WASM + GraphQL Service
+- Views (Register/Map/Queue)
+- ABI (Operations/Queries)
+- Anti-manipulasi (velocity cap/cooldown)
+
+Lihat `docs/ONCHAIN.md` untuk ABI & contoh query.
+<!-- END KETTY:README_HEADER v1 -->
+
+---
 
 > AI-powered oracle and prediction platform that validates real-world events, feeds verified results into prediction markets, and provides transparent dashboards for data tracking.
 
@@ -341,6 +360,35 @@ curl http://localhost:8001/api/markets
 
 ## 🚢 Deployment
 
+### Deploy to Linera Testnet
+
+1. **Publish contracts to testnet:**
+```bash
+bash scripts/testnet_publish.sh
+```
+This will:
+- Build WASM contracts
+- Initialize Linera wallet (if needed)
+- Deploy OracleFeed and Market contracts
+- Update `.env` files with APP_IDs
+
+2. **Seed sample markets:**
+```bash
+bash scripts/testnet_seed.sh
+```
+Creates 3 sample markets on testnet.
+
+3. **Verify deployment:**
+```bash
+# Get your chain ID
+linera wallet show
+
+# Query markets via GraphQL
+curl -X POST https://rpc.testnet.linera.net/chains/<chain-id>/applications/<market-app-id> \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "{ markets(offset: 0, limit: 10) }"}'
+```
+
 ### Production Checklist
 - [ ] Set secure JWT_SECRET
 - [ ] Configure production MongoDB
@@ -396,6 +444,28 @@ MIT License - Feel free to use this project as a starting point for your own DAp
 - [ ] Multi-chain support
 - [ ] Advanced analytics and ML predictions
 - [ ] Integration with more data sources
+
+## 📦 Releases & Versioning
+
+### Tagging a Wave
+
+To create a new release wave:
+
+```bash
+# Create and push a wave tag
+git tag wave-01
+git push origin wave-01
+```
+
+This automatically triggers a GitHub Release with:
+- Changelog for the wave
+- Linera testnet deployment info (APP_IDs)
+- Links to documentation
+- Optional WASM artifacts
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
+
+---
 
 ## 📞 Support
 

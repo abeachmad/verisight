@@ -5,6 +5,7 @@ import '@/index.css';
 // Layout Components
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import StatusBar from '@/components/StatusBar';
 
 // Pages
 import Landing from '@/pages/Landing';
@@ -14,6 +15,7 @@ import CreateMarket from '@/pages/CreateMarket';
 import CopyTrading from '@/pages/CopyTrading';
 import Dashboard from '@/pages/Dashboard';
 import Governance from '@/pages/Governance';
+import Events from '@/pages/Events';
 
 // Context
 import { WalletProvider } from '@/context/WalletContext';
@@ -24,12 +26,14 @@ function App() {
     <WalletProvider>
       <BrowserRouter>
         <div className="min-h-screen flex flex-col bg-[#0A0F1F]">
+          <StatusBar />
           <Navbar />
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/markets" element={<Markets />} />
               <Route path="/market/:id" element={<MarketDetail />} />
+              <Route path="/events" element={<Events />} />
               <Route path="/create" element={<CreateMarket />} />
               <Route path="/copytrading" element={<CopyTrading />} />
               <Route path="/dashboard" element={<Dashboard />} />

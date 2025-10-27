@@ -1,0 +1,19 @@
+name: wave-release
+on:
+  push:
+    tags: ['wave-*']
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Release Notes
+        id: notes
+        run: |
+          echo "## Release $(echo $GITHUB_REF | sed 's/refs\/tags\///')" > NOTES.md
+          echo "" >> NOTES.md
+          if [ -f CHANGELOG.md ]; then cat CHANGELOG.md >> NOTES.md; fi
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: NOTES.md
