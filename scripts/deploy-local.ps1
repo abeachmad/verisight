@@ -1,4 +1,4 @@
-# deploy-local.ps1 - Deploy to Linera devnet
+# deploy-local.ps1 - Deploy to Linera devnet (REAL APP_IDs)
 param(
   [string]$ServiceHost = '127.0.0.1',
   [int]$ServicePort = 8080
@@ -34,16 +34,45 @@ Say "Starting linera service at $serviceUrl..."
 $serviceProc = Start-Process -FilePath "linera" -ArgumentList "service","--port",$ServicePort,"--host",$ServiceHost -PassThru -WindowStyle Hidden
 Start-Sleep -Seconds 3
 
-# Mock deployment (replace with real linera commands)
+# Real deployment with linera publish
 Say "Publishing oracle_feed..."
-$oracleAppId = "e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65010000000000000000000000e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65030000000000000000000000"
-Ok "oracle_feed APP_ID: $oracleAppId"
+$oraclePublishJson = Join-Path $lineraDir '.linera_oracle_publish.json'
+try {
+  $publishCmd = "linera publish --wasm-path `"$oracleWasm`" --json"
+  Invoke-Expression $publishCmd | Out-File -FilePath $oraclePublishJson -Encoding utf8
+  $oracleData = Get-Content $oraclePublishJson | ConvertFrom-Json
+  $oracleAppId = $oracleData.application_id
+  if (-not $oracleAppId) { $oracleAppId = $oracleData.app_id }
+  if (-not $oracleAppId) { Fail "Failed to get oracle_feed APP_ID" }
+  Ok "oracle_feed APP_ID: $oracleAppId"
+} catch {
+  Fail "Failed to publish oracle_feed: $_"
+}
 
 Say "Publishing market..."
-$marketAppId = "e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65010000000000000000000000e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65040000000000000000000000"
-Ok "market APP_ID: $marketAppId"
+$marketPublishJson = Join-Path $lineraDir '.linera_market_publish.json'
+try {
+  $publishCmd = "linera publish --wasm-path `"$marketWasm`" --json"
+  Invoke-Expression $publishCmd | Out-File -FilePath $marketPublishJson -Encoding utf8
+  $marketData = Get-Content $marketPublishJson | ConvertFrom-Json
+  $marketAppId = $marketData.application_id
+  if (-not $marketAppId) { $marketAppId = $marketData.app_id }
+  if (-not $marketAppId) { Fail "Failed to get market APP_ID" }
+  Ok "market APP_ID: $marketAppId"
+} catch {
+  Fail "Failed to publish market: $_"
+}
 
-$chainId = "e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65"
+# Get chain ID from wallet
+try {
+  $walletJson = linera wallet show --json | ConvertFrom-Json
+  $chainId = $walletJson.default_chain_id
+  if (-not $chainId -and $walletJson.chains) { $chainId = $walletJson.chains[0].chain_id }
+  if ($chainId) { Ok "Chain ID: $chainId" }
+} catch {
+  Say "Warning: Could not get chain ID from wallet"
+  $chainId = ""
+}
 
 # Write frontend .env.local
 Say "Writing $envLocal (LINERA mode)..."
@@ -60,7 +89,11 @@ REACT_APP_IPFS_GATEWAY_URL=https://ipfs.io/ipfs
 "@ | Out-File -FilePath $envLocal -Encoding utf8 -Force
 
 Ok "Deployment complete!"
+Say "`nAPP_IDs for README:"
+Say "  OracleFeed: $oracleAppId"
+Say "  Market: $marketAppId"
+Say "  Chain ID: $chainId"
 Say "`nNext steps:"
-Say "  1. Start backend: cd backend && uvicorn server:app --port 8001 --reload"
+Say "  1. Start backend: cd backend && `$env:ENV='production'; uvicorn server:app --port 8001 --reload"
 Say "  2. Start frontend: cd frontend && npm start"
 Say "  3. Open: http://localhost:3000"

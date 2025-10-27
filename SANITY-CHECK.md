@@ -35,6 +35,21 @@ You can now view frontend in the browser.
 
 ---
 
+## 🤖 Automated Testing
+
+```powershell
+.\scripts\auto-test.ps1
+```
+
+This will:
+- Start backend + frontend in mock mode
+- Test 3 routes: /, /events, /markets
+- Verify 200 OK + keyword presence
+- Generate JUnit XML report: `tests/report.xml`
+- Auto-cleanup processes
+
+---
+
 ## ✅ Checklist (Pass Criteria)
 
 ### 1. Frontend Loads
