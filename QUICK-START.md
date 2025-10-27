@@ -23,7 +23,7 @@ npm start
 
 ---
 
-## Mode 2: Linera Mode (Full Integration)
+## Mode 2: Linera Devnet (Full Integration)
 
 ### Prerequisites
 - Linera CLI installed: `cargo install linera`
@@ -31,11 +31,52 @@ npm start
 
 ### Deploy & Start
 ```powershell
-# Build + Deploy + Start Frontend
-.\scripts\dev-check.ps1 -Mode devnet -OpenFrontend
+# Step 1: Validate & Build
+.\scripts\dev-check.ps1
+
+# Step 2: Deploy to Devnet
+.\scripts\deploy-local.ps1
+
+# Step 3: Start Backend
+cd backend
+$env:ENV="production"
+uvicorn server:app --port 8001 --reload
+
+# Step 4: Start Frontend (new terminal)
+cd frontend
+npm start
 ```
 
 **Access**: http://localhost:3000 (with Linera GraphQL)
+
+---
+
+## Mode 3: Linera Testnet
+
+### Prerequisites
+- Testnet GraphQL URL
+- Deployed APP_IDs (oracle_feed + market)
+
+### Connect & Start
+```powershell
+# Configure testnet
+.\scripts\deploy-testnet.ps1 `
+  -ServiceUrl https://YOUR-TESTNET/graphql `
+  -OracleFeedAppId <ORACLE_APP_ID> `
+  -MarketAppId <MARKET_APP_ID> `
+  -ChainId <CHAIN_ID>
+
+# Start Backend
+cd backend
+$env:ENV="production"
+uvicorn server:app --port 8001 --reload
+
+# Start Frontend (new terminal)
+cd frontend
+npm start
+```
+
+**Access**: http://localhost:3000 (with testnet data)
 
 ---
 
@@ -45,9 +86,11 @@ npm start
 # Switch to mock
 .\scripts\toggle-mode.ps1 -Mode mock
 
-# Switch to linera
+# Switch to linera (after deploy)
 .\scripts\toggle-mode.ps1 -Mode linera
 ```
+
+**Note**: Linera mode requires deployment first (devnet or testnet)
 
 ---
 

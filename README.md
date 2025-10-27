@@ -122,11 +122,42 @@ Verisight is a decentralized application (DApp) built on the Linera Layer-1 netw
 
 ## 🔧 Setup & Installation
 
+### Quick Start (3 Modes)
+
+#### Mode 1: Mock Mode (Fast - No Linera)
+```powershell
+.\scripts\start-mock.ps1
+```
+Access: http://localhost:3000
+
+#### Mode 2: Linera Devnet (Full Integration)
+```powershell
+# 1. Validate & build
+.\scripts\dev-check.ps1
+
+# 2. Deploy to devnet
+.\scripts\deploy-local.ps1
+
+# 3. Start services (see output)
+```
+Access: http://localhost:3000 (with Linera GraphQL)
+
+#### Mode 3: Linera Testnet
+```powershell
+.\scripts\deploy-testnet.ps1 `
+  -ServiceUrl https://YOUR-TESTNET/graphql `
+  -OracleFeedAppId <APP_ID> `
+  -MarketAppId <APP_ID>
+```
+
+See [QUICK-START.md](QUICK-START.md) for detailed instructions.
+
 ### Prerequisites
-- Node.js 18+ and Yarn
+- Node.js 18+ and npm
 - Python 3.11+
-- MongoDB
-- OpenAI API key (optional - uses mock mode if not provided)
+- MongoDB (optional for mock mode)
+- Rust + wasm32-unknown-unknown target (for Linera mode)
+- Linera CLI (for Linera mode): `cargo install linera`
 
 ### Backend Setup
 
