@@ -1,0 +1,7 @@
+{
+  "totals": { "events": 1284, "predictions": 53210, "volume_usd": 2012345, "active_markets": 42 },
+  "recent_events": [
+    { "id": "evt_1001", "title": "Bitcoin reaches $100,000 by end of 2025", "confidence": 0.91, "ts": "2025-01-15T00:00:00Z" },
+    { "id": "evt_1002", "title": "US Presidential Election 2024 Winner", "confidence": 0.87, "ts": "2025-01-14T00:00:00Z" }
+  ]
+}

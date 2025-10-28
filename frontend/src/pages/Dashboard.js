@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { isDemo } from '../utils/demoFlags';
+import analyticsOverview from '../mocks/fixtures/analytics_overview.json';
+import eventsFixture from '../mocks/fixtures/events.json';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, TrendingUp, CheckCircle, AlertCircle, BarChart3, Eye } from 'lucide-react';
@@ -16,10 +19,28 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isDemo()) {
+      setAnalytics({
+        total_events: analyticsOverview.totals.events,
+        active_markets: analyticsOverview.totals.active_markets,
+        total_predictions: analyticsOverview.totals.predictions,
+        total_volume: analyticsOverview.totals.volume_usd
+      });
+      setAgentStats({
+        total_verifications: 1284,
+        average_confidence: 87,
+        accuracy_rate: 0.94,
+        high_confidence_count: 1180
+      });
+      setEvents(eventsFixture);
+      setLoading(false);
+      return;
+    }
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
+    
     try {
       const [analyticsRes, agentStatsRes, eventsRes] = await Promise.all([
         axios.get(`${API}/analytics/overview`),
@@ -155,11 +176,11 @@ const Dashboard = () => {
                 Recent Events
               </h2>
               <div className="space-y-4">
-                {events.slice(0, 10).map((event) => (
+                {events.slice(0, 10).map((event, idx) => (
                   <div
-                    key={event.id}
+                    key={event.id || event.event_id || idx}
                     className="flex items-center justify-between p-4 bg-[#0A0F1F]/50 rounded-lg hover:bg-[#0A0F1F] smooth-transition"
-                    data-testid={`event-row-${event.id}`}
+                    data-testid={`event-row-${event.id || event.event_id || idx}`}
                   >
                     <div className="flex-1">
                       <h3 className="text-[#00FFFF] font-semibold mb-1">{event.event_title}</h3>
@@ -325,7 +346,7 @@ const Dashboard = () => {
                       dataKey="value"
                     >
                       {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${entry.name}-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip />

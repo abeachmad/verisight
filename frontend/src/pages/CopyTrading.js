@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { isDemo } from '../utils/demoFlags';
+import strategiesFixture from '../mocks/fixtures/strategies.json';
 import { useWallet } from '@/context/WalletContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,10 +20,26 @@ const CopyTrading = () => {
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
+    if (isDemo()) {
+      const enrichedStrategies = strategiesFixture.strategies.map(strategy => ({
+        ...strategy,
+        strategy_type: strategy.type === 'AI' ? 'ai-agent' : 'manual',
+        description: `Advanced ${strategy.type} trading strategy with ${(strategy.win_rate * 100).toFixed(0)}% win rate`,
+        performance: {
+          total_trades: Math.floor(Math.random() * 500) + 100,
+          win_rate: strategy.win_rate,
+          roi: strategy.roi
+        }
+      }));
+      setStrategies(enrichedStrategies);
+      setLoading(false);
+      return;
+    }
     fetchStrategies();
   }, []);
 
   const fetchStrategies = async () => {
+    
     try {
       const response = await axios.get(`${API}/strategies`);
       setStrategies(response.data);

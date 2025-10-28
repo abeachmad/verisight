@@ -1,0 +1,6 @@
+{
+  "agents": [
+    { "id": "a01", "name": "Orion-AI", "win_rate": 0.78, "roi": 0.45 },
+    { "id": "a02", "name": "Helios-ML", "win_rate": 0.73, "roi": 0.39 }
+  ]
+}

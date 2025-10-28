@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { DEMO } from '../utils/demoFlags';
+import { isDemo } from '../utils/demoFlags';
+import { normalizeOdds, oddsToPctString } from '../utils/normalizeOdds';
 import marketsFixture from '../mocks/fixtures/markets.json';
 import oddsFixture from '../mocks/fixtures/odds.json';
 import evidenceFixture from '../mocks/fixtures/evidence.json';
@@ -15,8 +16,8 @@ export default function MarketDetail() {
 
   useEffect(() => {
     const loadMarket = () => {
-      if (DEMO) {
-        console.info('DEMO mode (MarketDetail): using fixtures for id=', id);
+      if (isDemo()) {
+        console.info('[DEMO] MarketDetail: using fixtures for id=', id);
         const marketData = marketsFixture.find(m => m.market_id === id);
         if (marketData) {
           const odds = oddsFixture[id] || { yes: 0.5, no: 0.5, implied_vol: 0.1 };
@@ -41,22 +42,50 @@ export default function MarketDetail() {
         return;
       }
       
-      fetchMarket();
+      const timeout = setTimeout(() => {
+        console.warn('[DEMO] MarketDetail fetch timeout, falling back to fixtures');
+        const marketData = marketsFixture.find(m => m.market_id === id);
+        if (marketData) {
+          const odds = oddsFixture[id] || { yes: 0.5, no: 0.5, implied_vol: 0.1 };
+          const evidence = evidenceFixture[id] || {};
+          const event = eventsFixture.find(e => e.event_id === marketData.event_id) || {};
+          setMarket({ ...marketData, event, odds, evidence });
+        }
+        setLoading(false);
+      }, 300);
+      
+      fetch(`/api/markets/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          clearTimeout(timeout);
+          if (data && data.market_id) {
+            setMarket(data);
+          } else {
+            const marketData = marketsFixture.find(m => m.market_id === id);
+            if (marketData) {
+              const odds = oddsFixture[id] || { yes: 0.5, no: 0.5, implied_vol: 0.1 };
+              const evidence = evidenceFixture[id] || {};
+              const event = eventsFixture.find(e => e.event_id === marketData.event_id) || {};
+              setMarket({ ...marketData, event, odds, evidence });
+            }
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          clearTimeout(timeout);
+          console.error('Failed to fetch market, using fixtures:', err);
+          const marketData = marketsFixture.find(m => m.market_id === id);
+          if (marketData) {
+            const odds = oddsFixture[id] || { yes: 0.5, no: 0.5, implied_vol: 0.1 };
+            const evidence = evidenceFixture[id] || {};
+            const event = eventsFixture.find(e => e.event_id === marketData.event_id) || {};
+            setMarket({ ...marketData, event, odds, evidence });
+          }
+          setLoading(false);
+        });
     };
     
-    const fetchMarket = async () => {
-      try {
-        const res = await fetch(`/api/markets/${id}`);
-        const data = await res.json();
-        if (data && data.market_id) {
-          setMarket(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch market:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+
 
     loadMarket();
     const interval = setInterval(loadMarket, 3000);
@@ -116,7 +145,7 @@ export default function MarketDetail() {
           <div className="bg-gray-900 rounded-lg p-4 mb-6">
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
               On-Chain Evidence
-              {DEMO && <span className="text-xs px-2 py-1 bg-purple-600 rounded">mock</span>}
+              {isDemo() && <span className="text-xs px-2 py-1 bg-purple-600 rounded">mock</span>}
             </h3>
             <div className="grid gap-2 text-sm">
               <div className="flex gap-2">
@@ -170,13 +199,13 @@ export default function MarketDetail() {
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
                 <div className="text-3xl font-bold text-green-500">
-                  {Math.round(market.odds.yes * 100)}%
+                  {oddsToPctString(market.odds.yes)}
                 </div>
                 <div className="text-sm text-gray-400">YES</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-red-500">
-                  {Math.round(market.odds.no * 100)}%
+                  {oddsToPctString(market.odds.no)}
                 </div>
                 <div className="text-sm text-gray-400">NO</div>
               </div>

@@ -11,28 +11,40 @@ export default function Events() {
   const [filter, setFilter] = useState('All');
 
   useEffect(() => {
-    if (DEMO) {
-      console.info('DEMO mode (Events): using fixtures', eventsFixture.length);
-      setEvents(eventsFixture);
-      setLoading(false);
-      return;
-    }
-    
-    const fetchEvents = async () => {
-      try {
-        const res = await fetch('/api/events');
-        const data = await res.json();
-        if (data && data.length > 0) {
-          setEvents(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch events:', err);
-      } finally {
+    const loadEvents = () => {
+      if (DEMO) {
+        console.info('[DEMO] Events: using fixtures', eventsFixture.length);
+        setEvents(eventsFixture);
         setLoading(false);
+        return;
       }
+      
+      const timeout = setTimeout(() => {
+        console.warn('[DEMO] Fetch timeout, falling back to fixtures');
+        setEvents(eventsFixture);
+        setLoading(false);
+      }, 300);
+      
+      fetch('/api/events')
+        .then(res => res.json())
+        .then(data => {
+          clearTimeout(timeout);
+          if (data && data.length > 0) {
+            setEvents(data);
+          } else {
+            setEvents(eventsFixture);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          clearTimeout(timeout);
+          console.error('Failed to fetch events, using fixtures:', err);
+          setEvents(eventsFixture);
+          setLoading(false);
+        });
     };
 
-    fetchEvents();
+    loadEvents();
   }, []);
 
   const filtered = filter === 'All' 

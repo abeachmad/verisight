@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useWallet } from '@/context/WalletContext';
+import { normalizeOdds, oddsToPctString } from '../utils/normalizeOdds';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -336,7 +337,7 @@ const MarketDetail = () => {
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-[#A9B4C2]">{option.label}</span>
-                          <span className="text-[#00FFFF] font-bold">{option.odds?.toFixed(2)}x</span>
+                          <span className="text-[#00FFFF] font-bold">{oddsToPctString(option?.odds)}</span>
                         </div>
                       </button>
                     ))}
@@ -367,7 +368,7 @@ const MarketDetail = () => {
                           {
                             (
                               parseFloat(betAmount) *
-                              ((odds || market.options).find((o) => o.id === selectedOption)?.odds || 1)
+                              (normalizeOdds(((odds || market.options).find((o) => o.id === selectedOption)?.odds)) || 1)
                             ).toFixed(2)
                           }
                         </span>
@@ -379,7 +380,7 @@ const MarketDetail = () => {
                           {
                             (
                               parseFloat(betAmount) *
-                                ((odds || market.options).find((o) => o.id === selectedOption)?.odds || 1) -
+                                (normalizeOdds(((odds || market.options).find((o) => o.id === selectedOption)?.odds)) || 1) -
                               parseFloat(betAmount)
                             ).toFixed(2)
                           }

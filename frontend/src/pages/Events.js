@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { isDemo } from '../utils/demoFlags';
+import eventsFixture from '../mocks/fixtures/events.json';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -14,16 +16,56 @@ const Events = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isDemo()) {
+      console.info('[DEMO] Events: using fixtures', eventsFixture.length);
+      const transformedEvents = eventsFixture.map(event => ({
+        id: event.event_id,
+        event_title: event.title,
+        event_description: `AI-verified event in ${event.category} category`,
+        status: event.status,
+        confidence: event.confidence,
+        created_at: event.created_at
+      }));
+      setEvents(transformedEvents);
+      setLoading(false);
+      return;
+    }
     fetchEvents();
   }, []);
 
   const fetchEvents = async () => {
+    const timeout = setTimeout(() => {
+      console.warn('[FALLBACK] Using fixtures due to slow/failed fetch');
+      const transformedEvents = eventsFixture.map(event => ({
+        id: event.event_id,
+        event_title: event.title,
+        event_description: `AI-verified event in ${event.category} category`,
+        status: event.status,
+        confidence: event.confidence,
+        created_at: event.created_at
+      }));
+      setEvents(transformedEvents);
+      setLoading(false);
+    }, 300);
+
     try {
       const response = await axios.get(`${API}/events`);
+      clearTimeout(timeout);
       setEvents(response.data);
     } catch (error) {
       console.error('Error fetching events:', error);
+      clearTimeout(timeout);
+      const transformedEvents = eventsFixture.map(event => ({
+        id: event.event_id,
+        event_title: event.title,
+        event_description: `AI-verified event in ${event.category} category`,
+        status: event.status,
+        confidence: event.confidence,
+        created_at: event.created_at
+      }));
+      setEvents(transformedEvents);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };

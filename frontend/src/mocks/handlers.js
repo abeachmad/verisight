@@ -3,6 +3,9 @@ import eventsData from './fixtures/events.json';
 import marketsData from './fixtures/markets.json';
 import oddsData from './fixtures/odds.json';
 import evidenceData from './fixtures/evidence.json';
+import analyticsOverview from './fixtures/analytics_overview.json';
+import agentStats from './fixtures/agent_stats.json';
+import strategies from './fixtures/strategies.json';
 
 let blockHeight = 1000;
 let lastBlockUpdate = Date.now();
@@ -168,5 +171,22 @@ export const handlers = [
       latency: Math.floor(jitter(130, 50)),
       timestamp: new Date().toISOString()
     });
+  }),
+
+  // Analytics
+  http.get('**/api/analytics/overview', async () => {
+    await delay(150);
+    return HttpResponse.json(analyticsOverview);
+  }),
+  
+  http.get('**/api/analytics/agent-stats', async () => {
+    await delay(150);
+    return HttpResponse.json(agentStats);
+  }),
+
+  // Strategies (Copy Trading)
+  http.get('**/api/strategies', async () => {
+    await delay(150);
+    return HttpResponse.json(strategies);
   })
 ];

@@ -1,0 +1,7 @@
+{
+  "strategies": [
+    { "id": "s001", "name": "BTC Momentum v3", "type": "AI", "win_rate": 0.62, "roi": 0.31, "followers": 842 },
+    { "id": "s002", "name": "Macro News Arb", "type": "Manual", "win_rate": 0.58, "roi": 0.27, "followers": 411 },
+    { "id": "s003", "name": "Sports ELO Edge", "type": "AI", "win_rate": 0.66, "roi": 0.22, "followers": 519 }
+  ]
+}

@@ -25,6 +25,12 @@ function Log {
     Write-Host $msg
 }
 
+# Safely free only our dev ports (frontend 3000, backend 8001). Add others if needed.
+$ports = @(3000,8001)
+if ($env:PORT) { $ports[0] = [int]$env:PORT }
+if ($env:BACKEND_PORT) { $ports += [int]$env:BACKEND_PORT }
+powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\kill-ports.ps1" -Ports $ports | Out-Host
+
 Log "=== Auto Demo Setup Started ==="
 Log "Root: $rootDir"
 Log "Log: $logFile"

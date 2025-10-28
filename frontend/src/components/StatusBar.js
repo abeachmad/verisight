@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { DEMO } from '../utils/demoFlags';
 
 const StatusBar = () => {
   const [health, setHealth] = useState(null);
@@ -53,13 +54,18 @@ const StatusBar = () => {
     <div className="bg-gray-900 border-b border-gray-800 px-4 py-2 text-xs text-gray-400" role="status" aria-live="polite">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-6">
+          {DEMO && (
+            <span className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-semibold">
+              MOCK DATA (DEMO)
+            </span>
+          )}
           <span className="flex items-center">
             <span 
               className={`w-2 h-2 rounded-full mr-2 ${isHealthy ? 'bg-green-500' : 'bg-yellow-500'}`}
               aria-label={`Status: ${statusText}`}
             ></span>
             <span className="sr-only">Status: {statusText}</span>
-            Testnet: {lineraUrl}
+            {DEMO ? 'Demo Mode' : `Testnet: ${lineraUrl}`}
           </span>
           <span aria-label={`Block height: ${blockHeight.toLocaleString()}`}>
             Block: {blockHeight.toLocaleString()}

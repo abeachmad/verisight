@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { DEMO } from '../utils/demoFlags';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +10,19 @@ import { toast } from 'sonner';
 const Governance = () => {
   const { isConnected } = useWallet();
   const [votedProposals, setVotedProposals] = useState(new Set());
+  const [proposals, setProposals] = useState([]);
 
-  const proposals = [
+  useEffect(() => {
+    // const DEMO = isDemo();
+    if (DEMO) {
+      setProposals([
+        { id: 'prop-001', title: 'Enable Anti-Manipulation Guard', status: 'Active', votesFor: 1243, votesAgainst: 122 },
+        { id: 'prop-002', title: 'Raise Validator Bond to 1,000 LIN', status: 'Pending', votesFor: 0, votesAgainst: 0 }
+      ]);
+      return;
+    }
+    // Fallback proposals for non-DEMO mode
+    setProposals([
     {
       id: 1,
       title: 'Increase AI Confidence Threshold',
@@ -57,7 +69,8 @@ const Governance = () => {
       endTime: '2025-01-20T00:00:00Z',
       quorum: 2000
     }
-  ];
+    ]);
+  }, []);
 
   const handleVote = (proposalId, voteType) => {
     if (!isConnected) {

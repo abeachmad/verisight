@@ -14,12 +14,21 @@ async function bootstrap() {
   }
   
   if (DEMO) {
-    const { worker } = await import('./mocks/browser');
-    await worker.start({
-      onUnhandledRequest: 'bypass',
-      serviceWorker: { url: '/mockServiceWorker.js' }
-    });
-    console.log('[MSW] Mock Service Worker started');
+    console.log('[DEMO] Mock fixtures enabled');
+    // Set localStorage flag for consistency
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('VERISIGHT_DEMO', '1');
+    }
+    try {
+      const { worker } = await import('./mocks/browser');
+      await worker.start({
+        onUnhandledRequest: 'bypass',
+        serviceWorker: { url: '/mockServiceWorker.js' }
+      });
+      console.log('[MSW] Mock Service Worker started');
+    } catch (error) {
+      console.warn('[MSW] Failed to start, continuing with fixtures:', error);
+    }
   }
 
   const root = ReactDOM.createRoot(document.getElementById("root"));
