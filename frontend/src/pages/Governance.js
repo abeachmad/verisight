@@ -127,16 +127,17 @@ const Governance = () => {
         {/* Proposals */}
         <div className="space-y-6">
           {proposals.map(p => {
-            const forVotes = num(p.forVotes);
-            const againstVotes = num(p.againstVotes);
-            const totalVotes = forVotes + againstVotes;
+            const forVotes = num(p.forVotes ?? p.votesFor);
+            const againstVotes = num(p.againstVotes ?? p.votesAgainst);
+            const total = forVotes + againstVotes;
 
-            const forPct = totalVotes > 0 ? Math.round((forVotes / totalVotes) * 100) : 0;
-            const againstPct = 100 - forPct;
+            // percentages (handle total=0 => both 0%)
+            const forPct = total > 0 ? Math.max(0, Math.min(100, Math.round((forVotes / total) * 100))) : 0;
+            const againstPct = total > 0 ? 100 - forPct : 0;
 
             const qCur = num(p.quorum?.current);
-            const qReq = num(p.quorum?.required);
-            const qPct = qReq > 0 ? clamp100((qCur / qReq) * 100) : 0;
+            const qReq = Math.max(1, num(p.quorum?.required)); // avoid divide-by-zero
+            const quorumPct = Math.max(0, Math.min(100, Math.round((qCur / qReq) * 100)));
 
             const meta = getStatusMeta(p.status);
 
@@ -207,7 +208,7 @@ const Governance = () => {
                     <div className="w-full bg-[#0A0F1F] rounded-full h-2 overflow-hidden">
                       <div
                         className="bg-[#00FFFF] h-2 rounded-full glow smooth-transition"
-                        style={{ width: `${qPct}%` }}
+                        style={{ width: `${quorumPct}%` }}
                       ></div>
                     </div>
                   </div>
