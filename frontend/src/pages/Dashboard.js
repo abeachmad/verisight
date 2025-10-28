@@ -81,18 +81,36 @@ function deltaClass(d) {
 }
 
 const Dashboard = () => {
+  const DEMO = isDemo();
+  
+  // In-component fallback data
+  const DEFAULT_ANALYTICS = {
+    volume7d: [
+      { d:'2025-01-01', usd:18100 },{ d:'2025-01-02', usd:22100 },
+      { d:'2025-01-03', usd:19800 },{ d:'2025-01-04', usd:24300 },
+      { d:'2025-01-05', usd:20900 },{ d:'2025-01-06', usd:25100 },
+      { d:'2025-01-07', usd:29050 },
+    ],
+    confidenceBuckets: [
+      { range:'50–60', count:132 },{ range:'60–70', count:148 },
+      { range:'70–80', count:116 },{ range:'80–90', count:101 },
+      { range:'90–100', count:48 },
+    ],
+    categories: [
+      { name:'Crypto', value:36 },{ name:'Politics', value:22 },
+      { name:'Sports', value:18 },{ name:'Tech', value:14 },
+      { name:'Other', value:10 },
+    ],
+  };
+  
   const [analytics, setAnalytics] = useState(null);
   const [agentStats, setAgentStats] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [confDist, setConfDist] = useState([]);
-  const [volume7d, setVolume7d] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState('events');
   const [chartKey, setChartKey] = useState(0);
 
   useEffect(() => {
-    const DEMO = isDemo();
     if (DEMO) {
       setAnalytics({
         total_events: analyticsOverview.totals.events,
@@ -107,22 +125,16 @@ const Dashboard = () => {
         high_confidence_count: 1180
       });
       setEvents(eventsFixture);
-      const vol = toArray(charts.volume7d);
-      const conf = toArray(charts.confidenceBuckets);
-      const cats = toArray(charts.categories);
-      
-      setConfDist(conf);
-      setVolume7d(vol);
-      setCategories(cats);
-      
-      console.debug('[Dashboard demo] vol7=', vol.length, 'conf=', conf.reduce((s,i)=>s+(i.count||0),0), 'cats=', cats.reduce((s,i)=>s+(i.value||0),0));
       setLoading(false);
+      // Don't fetch in DEMO mode
       return;
     }
     fetchDashboardData();
-  }, []);
+  }, [DEMO]);
 
   const fetchDashboardData = async () => {
+    if (DEMO) return; // Block fetch in DEMO
+    
     try {
       const [analyticsRes, agentStatsRes, eventsRes] = await Promise.all([
         axios.get(`${API}/analytics/overview`),
@@ -148,6 +160,16 @@ const Dashboard = () => {
       setChartKey((k) => k + 1);
     });
   }, [activeTab]);
+
+  // Prepare chart data with fallbacks
+  const chartSource = DEMO && charts && Object.keys(charts).length ? charts : (DEMO ? DEFAULT_ANALYTICS : {});
+  const vol7 = DEMO ? chartSource.volume7d : [];
+  const conf = DEMO ? chartSource.confidenceBuckets : [];
+  const cats = DEMO ? chartSource.categories : [];
+  
+  if (DEMO) {
+    console.debug('[Dashboard demo] vol7=', vol7?.length, 'conf=', conf?.reduce((s,i)=>s+(i.count||0),0), 'cats=', cats?.reduce((s,i)=>s+(i.value||0),0));
+  }
 
   if (loading) {
     return (
@@ -355,15 +377,9 @@ const Dashboard = () => {
                 <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                   Confidence Distribution
                 </h2>
-                {toArray(confDist).length > 0 ? (
-                  <div key={`agents-${chartKey}`}>
-                    <SimpleBarChart data={confDist} xKey="range" yKey="count" />
-                  </div>
-                ) : (
-                  <div className="h-[280px] flex items-center justify-center text-[#A9B4C2]">
-                    No data available
-                  </div>
-                )}
+                <div key={`agents-${chartKey}`}>
+                  <SimpleBarChart data={conf} height={260} />
+                </div>
               </Card>
             </div>
           </TabsContent>
@@ -374,15 +390,9 @@ const Dashboard = () => {
               <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                 Trading Volume (7 Days)
               </h2>
-              {toArray(volume7d).length > 0 ? (
-                <div key={`markets-${chartKey}`}>
-                  <SimpleLineChart data={volume7d} xKey="d" yKey="usd" />
-                </div>
-              ) : (
-                <div className="h-[320px] flex items-center justify-center text-[#A9B4C2]">
-                  No data available
-                </div>
-              )}
+              <div key={`markets-${chartKey}`}>
+                <SimpleLineChart data={vol7} height={260} />
+              </div>
             </Card>
           </TabsContent>
 
@@ -393,15 +403,9 @@ const Dashboard = () => {
                 <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                   Event Categories
                 </h2>
-                {toArray(categories).length > 0 ? (
-                  <div key={`analytics-${chartKey}`}>
-                    <SimplePieChart data={categories} nameKey="name" valueKey="value" />
-                  </div>
-                ) : (
-                  <div className="h-[320px] flex items-center justify-center text-[#A9B4C2]">
-                    No data available
-                  </div>
-                )}
+                <div key={`analytics-${chartKey}`}>
+                  <SimplePieChart data={cats} height={260} />
+                </div>
               </Card>
 
               <Card className="bg-[#141b2d] border-[#00FFFF]/30 p-6">
