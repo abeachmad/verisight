@@ -1,88 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import { DEMO } from '../utils/demoFlags';
+import { isDemo } from '../utils/demoFlags';
+import governanceFixture from '../mocks/fixtures/governance.json';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Vote, CheckCircle2, Clock, Users } from 'lucide-react';
 import { useWallet } from '@/context/WalletContext';
 import { toast } from 'sonner';
-import { fmt, clamp100 } from '../utils/safeList';
 
-const STATUS = {
-  ACTIVE: { label: 'ACTIVE', icon: Clock, color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  PASSED: { label: 'PASSED', icon: CheckCircle2, color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  REJECTED: { label: 'REJECTED', icon: CheckCircle2, color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  PENDING: { label: 'PENDING', icon: Clock, color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  CLOSED: { label: 'CLOSED', icon: CheckCircle2, color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
-  UNKNOWN: { label: 'UNKNOWN', icon: Clock, color: 'bg-gray-700 text-gray-300 border border-gray-600' },
+// ---- local helpers (file-scoped; do NOT export) ----
+const num = (x, d = 0) => {
+  // turn "1,250" or " 1250 " or 1250 into a number
+  if (x === null || x === undefined) return d;
+  const n = Number(String(x).replace(/[^0-9.-]/g, ''));
+  return Number.isFinite(n) ? n : d;
+};
+const fmt = (x) => {
+  const n = num(x, null);
+  return n === null ? '—' : n.toLocaleString();
+};
+const clamp100 = (v) => Math.max(0, Math.min(100, num(v, 0)));
+const toArr = (x) => (Array.isArray(x) ? x : x ? [x] : []);
+const safeDateLabel = (iso) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return Number.isNaN(d.valueOf()) ? '—' : d.toLocaleDateString();
 };
 
-const getStatusMeta = (s) => STATUS[String(s || '').toUpperCase()] || STATUS.UNKNOWN;
+// status map with fallback
+const STATUS_META = {
+  ACTIVE:  { label: 'ACTIVE',  icon: '🟢', classes: 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40' },
+  PASSED:  { label: 'PASSED',  icon: '✅',  classes: 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40' },
+  FAILED:  { label: 'FAILED',  icon: '⛔',  classes: 'bg-rose-600/20 text-rose-300 border border-rose-500/40' },
+  PENDING: { label: 'PENDING', icon: '🟡', classes: 'bg-amber-600/20 text-amber-300 border border-amber-500/40' },
+  CLOSED:  { label: 'CLOSED',  icon: '⚪',  classes: 'bg-gray-600/20 text-gray-300 border border-gray-500/40' },
+  UNKNOWN: { label: 'UNKNOWN', icon: '•',   classes: 'bg-gray-700 text-gray-300 border border-gray-600' },
+};
+const normalizeStatus = (s) => String((s?.status ?? s?.state ?? s ?? '')).trim().toUpperCase() || 'UNKNOWN';
+const getStatusMeta = (s) => STATUS_META[normalizeStatus(s)] || STATUS_META.UNKNOWN;
 
 const Governance = () => {
   const { isConnected } = useWallet();
   const [votedProposals, setVotedProposals] = useState(new Set());
-  const [proposals, setProposals] = useState([]);
 
-  useEffect(() => {
-    // const DEMO = isDemo();
-    if (DEMO) {
-      setProposals([
-        { id: 'prop-001', title: 'Enable Anti-Manipulation Guard', status: 'Active', votesFor: 1243, votesAgainst: 122 },
-        { id: 'prop-002', title: 'Raise Validator Bond to 1,000 LIN', status: 'Pending', votesFor: 0, votesAgainst: 0 }
-      ]);
-      return;
-    }
-    // Fallback proposals for non-DEMO mode
-    setProposals([
-    {
-      id: 1,
-      title: 'Increase AI Confidence Threshold',
-      description:
-        'Raise the minimum confidence threshold for automatic event resolution from 90% to 95% to improve accuracy.',
-      status: 'active',
-      votesFor: 1250,
-      votesAgainst: 420,
-      totalVotes: 1670,
-      endTime: '2025-02-15T00:00:00Z',
-      quorum: 2000
-    },
-    {
-      id: 2,
-      title: 'Add New Event Categories',
-      description:
-        'Expand supported event categories to include entertainment, technology, and climate events.',
-      status: 'active',
-      votesFor: 890,
-      votesAgainst: 210,
-      totalVotes: 1100,
-      endTime: '2025-02-10T00:00:00Z',
-      quorum: 2000
-    },
-    {
-      id: 3,
-      title: 'Reduce Oracle Publication Fees',
-      description: 'Lower the gas fees for oracle publication by 50% to make verification more cost-effective.',
-      status: 'passed',
-      votesFor: 2150,
-      votesAgainst: 380,
-      totalVotes: 2530,
-      endTime: '2025-01-25T00:00:00Z',
-      quorum: 2000
-    },
-    {
-      id: 4,
-      title: 'Implement Multi-Source Verification',
-      description: 'Require verification from at least 5 sources instead of 3 for higher confidence events.',
-      status: 'rejected',
-      votesFor: 680,
-      votesAgainst: 1520,
-      totalVotes: 2200,
-      endTime: '2025-01-20T00:00:00Z',
-      quorum: 2000
-    }
-    ]);
-  }, []);
+  const DEMO = isDemo();
+  const proposals = DEMO ? toArr(governanceFixture.proposals) : [];
+
+  const totals = {
+    total: proposals.length,
+    active: proposals.filter(p => normalizeStatus(p.status) === 'ACTIVE').length,
+    passed: proposals.filter(p => normalizeStatus(p.status) === 'PASSED').length,
+    voters: '3.2K'
+  };
 
   const handleVote = (proposalId, voteType) => {
     if (!isConnected) {
@@ -97,22 +66,6 @@ const Governance = () => {
 
     setVotedProposals(new Set(votedProposals).add(proposalId));
     toast.success(`Vote ${voteType === 'for' ? 'FOR' : 'AGAINST'} recorded successfully!`);
-  };
-
-  const getStatusBadge = (status) => {
-    const meta = getStatusMeta(status);
-    const Icon = meta.icon;
-
-    return (
-      <Badge className={`${meta.color} border`}>
-        <Icon className="mr-1 h-3 w-3" />
-        {meta.label}
-      </Badge>
-    );
-  };
-
-  const calculatePercentage = (votes, total) => {
-    return total > 0 ? ((votes / total) * 100).toFixed(1) : 0;
   };
 
   return (
@@ -134,7 +87,7 @@ const Governance = () => {
             <div className="flex items-center space-x-3">
               <Vote className="h-8 w-8 text-[#00FFFF]" />
               <div>
-                <div className="text-2xl font-['Orbitron'] font-bold text-[#00FFFF]">4</div>
+                <div className="text-2xl font-['Orbitron'] font-bold text-[#00FFFF]">{totals.total}</div>
                 <div className="text-[#A9B4C2] text-sm">Total Proposals</div>
               </div>
             </div>
@@ -144,7 +97,7 @@ const Governance = () => {
             <div className="flex items-center space-x-3">
               <Clock className="h-8 w-8 text-[#00FFFF]" />
               <div>
-                <div className="text-2xl font-['Orbitron'] font-bold text-[#00FFFF]">2</div>
+                <div className="text-2xl font-['Orbitron'] font-bold text-[#00FFFF]">{totals.active}</div>
                 <div className="text-[#A9B4C2] text-sm">Active Votes</div>
               </div>
             </div>
@@ -154,7 +107,7 @@ const Governance = () => {
             <div className="flex items-center space-x-3">
               <CheckCircle2 className="h-8 w-8 text-[#00FFFF]" />
               <div>
-                <div className="text-2xl font-['Orbitron'] font-bold text-[#00FFFF]">1</div>
+                <div className="text-2xl font-['Orbitron'] font-bold text-[#00FFFF]">{totals.passed}</div>
                 <div className="text-[#A9B4C2] text-sm">Passed</div>
               </div>
             </div>
@@ -164,7 +117,7 @@ const Governance = () => {
             <div className="flex items-center space-x-3">
               <Users className="h-8 w-8 text-[#00FFFF]" />
               <div>
-                <div className="text-2xl font-['Orbitron'] font-bold text-[#00FFFF]">3.2K</div>
+                <div className="text-2xl font-['Orbitron'] font-bold text-[#00FFFF]">{totals.voters}</div>
                 <div className="text-[#A9B4C2] text-sm">Total Voters</div>
               </div>
             </div>
@@ -173,121 +126,124 @@ const Governance = () => {
 
         {/* Proposals */}
         <div className="space-y-6">
-          {proposals.map((proposal) => (
-            <Card
-              key={proposal.id}
-              className="bg-[#141b2d] border-[#00FFFF]/30 hover:border-[#00FFFF] smooth-transition p-6"
-              data-testid={`proposal-card-${proposal.id}`}
-            >
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 space-y-4 sm:space-y-0">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF]">
-                      {proposal.title}
-                    </h3>
-                    {getStatusBadge(proposal.status)}
-                  </div>
-                  <p className="text-[#A9B4C2] mb-4">{proposal.description}</p>
-                </div>
-              </div>
+          {proposals.map(p => {
+            const forVotes = num(p.forVotes);
+            const againstVotes = num(p.againstVotes);
+            const totalVotes = forVotes + againstVotes;
 
-              {/* Voting Progress */}
-              <div className="space-y-4 mb-6">
-                {/* For Votes */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-green-400 font-semibold">FOR</span>
-                    <span className="text-[#A9B4C2] text-sm">
-                      {fmt(proposal?.votesFor)} votes ({
-                        calculatePercentage(proposal.votesFor, proposal.totalVotes)
-                      }%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-[#0A0F1F] rounded-full h-3 overflow-hidden">
-                    <div
-                      className="bg-green-400 h-3 rounded-full smooth-transition"
-                      style={{ width: `${clamp100(calculatePercentage(proposal.votesFor, proposal.totalVotes))}%` }}
-                    ></div>
+            const forPct = totalVotes > 0 ? Math.round((forVotes / totalVotes) * 100) : 0;
+            const againstPct = 100 - forPct;
+
+            const qCur = num(p.quorum?.current);
+            const qReq = num(p.quorum?.required);
+            const qPct = qReq > 0 ? clamp100((qCur / qReq) * 100) : 0;
+
+            const meta = getStatusMeta(p.status);
+
+            return (
+              <Card
+                key={p.id}
+                className="bg-[#141b2d] border-[#00FFFF]/30 hover:border-[#00FFFF] smooth-transition p-6"
+                data-testid={`proposal-card-${p.id}`}
+              >
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 space-y-4 sm:space-y-0">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF]">
+                        {p.title}
+                      </h3>
+                      <Badge className={`${meta.classes} border`}>
+                        <span aria-hidden className="mr-1">{meta.icon}</span>
+                        {meta.label}
+                      </Badge>
+                    </div>
+                    <p className="text-[#A9B4C2] mb-4">{p.description}</p>
                   </div>
                 </div>
 
-                {/* Against Votes */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-red-400 font-semibold">AGAINST</span>
-                    <span className="text-[#A9B4C2] text-sm">
-                      {fmt(proposal?.votesAgainst)} votes ({
-                        calculatePercentage(proposal.votesAgainst, proposal.totalVotes)
-                      }%)
-                    </span>
+                {/* Voting Progress */}
+                <div className="space-y-4 mb-6">
+                  {/* For Votes */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-green-400 font-semibold">FOR</span>
+                      <span className="text-[#A9B4C2] text-sm">
+                        {fmt(forVotes)} votes ({forPct}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-[#0A0F1F] rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-green-400 h-3 rounded-full smooth-transition"
+                        style={{ width: `${forPct}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="w-full bg-[#0A0F1F] rounded-full h-3 overflow-hidden">
-                    <div
-                      className="bg-red-400 h-3 rounded-full smooth-transition"
-                      style={{
-                        width: `${clamp100(calculatePercentage(proposal.votesAgainst, proposal.totalVotes))}%`
-                      }}
-                    ></div>
+
+                  {/* Against Votes */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-red-400 font-semibold">AGAINST</span>
+                      <span className="text-[#A9B4C2] text-sm">
+                        {fmt(againstVotes)} votes ({againstPct}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-[#0A0F1F] rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-red-400 h-3 rounded-full smooth-transition"
+                        style={{ width: `${againstPct}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Quorum Progress */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[#00FFFF] font-semibold">QUORUM PROGRESS</span>
+                      <span className="text-[#A9B4C2] text-sm">
+                        {fmt(qCur)} / {fmt(qReq)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-[#0A0F1F] rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-[#00FFFF] h-2 rounded-full glow smooth-transition"
+                        style={{ width: `${qPct}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Quorum Progress */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[#00FFFF] font-semibold">QUORUM PROGRESS</span>
-                    <span className="text-[#A9B4C2] text-sm">
-                      {fmt(proposal?.totalVotes)} / {fmt(proposal?.quorum)}
-                    </span>
+                {/* Actions */}
+                <div className="flex items-center justify-between pt-4 border-t border-[#00FFFF]/20">
+                  <div className="text-[#A9B4C2] text-sm">
+                    Ends: {safeDateLabel(p.endTs)}
                   </div>
-                  <div className="w-full bg-[#0A0F1F] rounded-full h-2 overflow-hidden">
-                    <div
-                      className="bg-[#00FFFF] h-2 rounded-full glow smooth-transition"
-                      style={{ width: `${clamp100((proposal.totalVotes / proposal.quorum) * 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-between pt-4 border-t border-[#00FFFF]/20">
-                <div className="text-[#A9B4C2] text-sm">
-                  {proposal.status === 'active' && (
-                    <span>
-                      Ends: {new Date(proposal.endTime).toLocaleDateString()}
-                    </span>
+                  {normalizeStatus(p.status) === 'ACTIVE' && (
+                    <div className="flex space-x-3">
+                      <Button
+                        onClick={() => handleVote(p.id, 'for')}
+                        disabled={!isConnected || votedProposals.has(p.id)}
+                        className="bg-green-500 hover:bg-green-600 text-white"
+                        data-testid={`vote-for-${p.id}`}
+                      >
+                        Vote FOR
+                      </Button>
+                      <Button
+                        onClick={() => handleVote(p.id, 'against')}
+                        disabled={!isConnected || votedProposals.has(p.id)}
+                        variant="outline"
+                        className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        data-testid={`vote-against-${p.id}`}
+                      >
+                        Vote AGAINST
+                      </Button>
+                    </div>
                   )}
-                  {proposal.status !== 'active' && (
-                    <span>
-                      Ended: {new Date(proposal.endTime).toLocaleDateString()}
-                    </span>
-                  )}
                 </div>
-
-                {proposal.status === 'active' && (
-                  <div className="flex space-x-3">
-                    <Button
-                      onClick={() => handleVote(proposal.id, 'for')}
-                      disabled={!isConnected || votedProposals.has(proposal.id)}
-                      className="bg-green-500 hover:bg-green-600 text-white"
-                      data-testid={`vote-for-${proposal.id}`}
-                    >
-                      Vote FOR
-                    </Button>
-                    <Button
-                      onClick={() => handleVote(proposal.id, 'against')}
-                      disabled={!isConnected || votedProposals.has(proposal.id)}
-                      variant="outline"
-                      className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                      data-testid={`vote-against-${proposal.id}`}
-                    >
-                      Vote AGAINST
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       </div>
     </div>
