@@ -1,66 +1,53 @@
 import React from 'react';
 import { isDemo } from '../utils/demoFlags';
+import { toArray, num, fmt, clamp100 } from '../utils/safeList';
+import demoGov from '../mocks/fixtures/governance.json';
 
-const STATUS_META = {
-  ACTIVE:  { label: 'ACTIVE',  icon: '🟢', classes: 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40' },
-  PASSED:  { label: 'PASSED',  icon: '✅', classes: 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40' },
-  FAILED:  { label: 'FAILED',  icon: '⛔', classes: 'bg-rose-600/20 text-rose-300 border border-rose-500/40' },
-  PENDING: { label: 'PENDING', icon: '🟡', classes: 'bg-amber-600/20 text-amber-300 border border-amber-500/40' },
-  RESOLVED:{ label: 'RESOLVED',icon: '🔵', classes: 'bg-sky-600/20 text-sky-300 border border-sky-500/40' },
-  CLOSED:  { label: 'CLOSED',  icon: '⚪', classes: 'bg-gray-600/20 text-gray-300 border border-gray-500/40' },
-  UNKNOWN: { label: 'UNKNOWN', icon: '•',  classes: 'bg-gray-700 text-gray-300 border border-gray-600' },
+// ---- Status meta with fallback (keeps prior styling)
+const STATUS = {
+  ACTIVE:  { label: 'ACTIVE',  icon: '🟢', chip: 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40' },
+  PASSED:  { label: 'PASSED',  icon: '✅',  chip: 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40' },
+  FAILED:  { label: 'FAILED',  icon: '⛔', chip: 'bg-rose-600/20 text-rose-300 border border-rose-500/40' },
+  PENDING: { label: 'PENDING', icon: '🟡', chip: 'bg-amber-600/20 text-amber-300 border border-amber-500/40' },
+  CLOSED:  { label: 'CLOSED',  icon: '⚪', chip: 'bg-gray-600/20 text-gray-300 border border-gray-500/40' },
+  UNKNOWN: { label: 'UNKNOWN', icon: '•',  chip: 'bg-gray-700 text-gray-300 border border-gray-600' }
 };
-function normalizeStatus(s) {
-  if (!s) return 'UNKNOWN';
-  if (typeof s === 'string') return s.trim().toUpperCase();
-  if (typeof s === 'object') {
-    const v = s.state ?? s.status ?? s.phase ?? s.value ?? '';
-    return String(v).trim().toUpperCase() || 'UNKNOWN';
-  }
-  return 'UNKNOWN';
-}
-function getStatusMeta(s) {
-  const key = normalizeStatus(s);
-  return STATUS_META[key] || STATUS_META.UNKNOWN;
-}
-function StatusBadge({ status }) {
-  const meta = getStatusMeta(status);
-  return (
-    <span className={`inline-flex items-center gap-2 text-xs px-2 py-1 rounded ${meta.classes}`}>
-      <span aria-hidden>{meta.icon}</span>
-      {meta.label}
-    </span>
-  );
-}
+const statusMeta = s => STATUS[String(s || '').toUpperCase()] || STATUS.UNKNOWN;
 
-const DEMO_PROPOSALS = [
-  { id: 'prop-001', title: 'Increase AI Confidence Threshold', status: 'ACTIVE',  forVotes: 1250, againstVotes: 420,  quorum: { current: 1670, required: 2000 },
-    description: 'Raise the minimum confidence threshold for automatic event resolution from 90% to 95% to improve accuracy.' },
-  { id: 'prop-002', title: 'Enable Copy Trading Beta',          status: 'PASSED',  forVotes: 2100, againstVotes: 180,  quorum: { current: 2280, required: 2000 },
-    description: 'Open beta for copy trading strategies.' },
-  { id: 'prop-003', title: 'Reduce Trading Fee to 0.2%',        status: 'FAILED',  forVotes: 500,  againstVotes: 850,  quorum: { current: 1350, required: 2000 },
-    description: 'Reduce market fee for increased volume.' },
-  { id: 'prop-004', title: 'Treasury Transparency Report Q4',   status: 'PENDING', forVotes: 0,    againstVotes: 0,    quorum: { current: 0,    required: 2000 },
-    description: 'Publish quarterly treasury report.' },
-];
+const safeDate = (x) => {
+  const d = new Date(x);
+  return isFinite(d.getTime()) ? d.toLocaleDateString() : '—';
+};
 
-function StatCard({ label, value }) {
-  return (
-    <div className="bg-gray-900/60 rounded-lg p-6 border border-gray-800">
-      <div className="text-teal-300 text-4xl font-semibold">{value}</div>
-      <div className="text-gray-400 mt-2">{label}</div>
-    </div>
-  );
-}
+const StatCard = ({ label, value }) => (
+  <div className="bg-gray-900/60 rounded-lg p-6 border border-gray-800">
+    <div className="text-teal-300 text-4xl font-semibold">{fmt(num(value))}</div>
+    <div className="text-gray-400 mt-2">{label}</div>
+  </div>
+);
 
 export default function Governance() {
-  const proposals = isDemo() ? DEMO_PROPOSALS : DEMO_PROPOSALS;
+  // DEMO: gunakan fixture numerik; non-DEMO: biarkan kosong (tidak fetch di mock run)
+  const source = isDemo() ? toArray(demoGov?.proposals) : [];
+  const proposals = source.map((p, idx) => ({
+    id: String(p.id ?? idx),
+    title: p.title ?? '',
+    status: p.status ?? p.state ?? 'UNKNOWN',
+    forVotes: num(p.forVotes ?? p.votesFor, 0),
+    againstVotes: num(p.againstVotes ?? p.votesAgainst, 0),
+    quorum: {
+      current: num(p?.quorum?.current ?? p.quorumCurrent, 0),
+      required: num(p?.quorum?.required ?? p.quorumRequired, 2000)
+    },
+    endTs: p.endTs ?? p.endsAt ?? null,
+    description: p.description ?? ''
+  }));
 
   const totals = {
     total: proposals.length,
-    active: proposals.filter(p => normalizeStatus(p.status) === 'ACTIVE').length,
-    passed: proposals.filter(p => normalizeStatus(p.status) === 'PASSED').length,
-    voters: '3.2K',
+    active: proposals.filter(p => statusMeta(p.status).label === 'ACTIVE').length,
+    passed: proposals.filter(p => statusMeta(p.status).label === 'PASSED').length,
+    voters: 3200
   };
 
   return (
@@ -77,48 +64,55 @@ export default function Governance() {
 
       <div className="space-y-6">
         {proposals.map((p) => {
-          const votes = p.forVotes + p.againstVotes;
-          const forPct = votes > 0 ? Math.round((p.forVotes / votes) * 100) : 0;
-          const quorumPct = p.quorum.required > 0 ? Math.min(100, Math.round((p.quorum.current / p.quorum.required) * 100)) : 0;
+          const votes = num(p.forVotes) + num(p.againstVotes);
+          const forPct = votes > 0 ? Math.round((num(p.forVotes) / votes) * 100) : 0;
+          const againstPct = votes > 0 ? 100 - forPct : 0;
+          const quorumPct = clamp100((num(p.quorum.current) / Math.max(1, num(p.quorum.required))) * 100);
+
+          const m = statusMeta(p.status);
 
           return (
             <div key={p.id} className="bg-gray-900 rounded-lg border border-gray-800 p-6">
               <div className="flex items-center justify-between gap-3 mb-4">
                 <h2 className="text-2xl font-bold text-teal-200">{p.title}</h2>
-                <StatusBadge status={p.status} />
+                <span className={`inline-flex items-center gap-2 text-xs px-2 py-1 rounded ${m.chip}`}>
+                  <span aria-hidden>{m.icon}</span>
+                  {m.label}
+                </span>
               </div>
 
-              <p className="text-gray-400 mb-6">{p.description}</p>
+              {p.description && <p className="text-gray-400 mb-6">{p.description}</p>}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-950/40 rounded-lg p-4 border border-gray-800">
+                <div className="bg-gray-950/40 rounded-lg p-4 border border-gray-800 overflow-hidden">
                   <div className="text-gray-400 text-sm mb-2">FOR</div>
                   <div className="text-teal-300 font-semibold">
-                    {p.forVotes.toLocaleString()} votes ({forPct}%)
+                    {fmt(num(p.forVotes))} votes ({forPct}%)
                   </div>
                   <div className="h-2 bg-gray-800 rounded mt-2">
                     <div className="h-2 bg-teal-500 rounded" style={{ width: `${forPct}%` }} />
                   </div>
                 </div>
 
-                <div className="bg-gray-950/40 rounded-lg p-4 border border-gray-800">
+                <div className="bg-gray-950/40 rounded-lg p-4 border border-gray-800 overflow-hidden">
                   <div className="text-gray-400 text-sm mb-2">AGAINST</div>
                   <div className="text-rose-300 font-semibold">
-                    {p.againstVotes.toLocaleString()} votes ({100 - forPct}%)
+                    {fmt(num(p.againstVotes))} votes ({againstPct}%)
                   </div>
                   <div className="h-2 bg-gray-800 rounded mt-2">
-                    <div className="h-2 bg-rose-500 rounded" style={{ width: `${100 - forPct}%` }} />
+                    <div className="h-2 bg-rose-500 rounded" style={{ width: `${againstPct}%` }} />
                   </div>
                 </div>
 
-                <div className="bg-gray-950/40 rounded-lg p-4 border border-gray-800">
+                <div className="bg-gray-950/40 rounded-lg p-4 border border-gray-800 overflow-hidden">
                   <div className="text-gray-400 text-sm mb-2">QUORUM PROGRESS</div>
                   <div className="text-cyan-300 font-semibold">
-                    {p.quorum.current.toLocaleString()} / {p.quorum.required.toLocaleString()}
+                    {fmt(num(p.quorum.current))} / {fmt(num(p.quorum.required))}
                   </div>
                   <div className="h-2 bg-gray-800 rounded mt-2">
                     <div className="h-2 bg-cyan-500 rounded" style={{ width: `${quorumPct}%` }} />
                   </div>
+                  <div className="text-gray-500 text-xs mt-2">Ends: {safeDate(p.endTs)}</div>
                 </div>
               </div>
             </div>

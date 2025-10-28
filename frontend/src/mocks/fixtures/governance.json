@@ -1,0 +1,44 @@
+{
+  "proposals": [
+    {
+      "id": "prop-001",
+      "title": "Increase AI Confidence Threshold",
+      "status": "ACTIVE",
+      "forVotes": 1250,
+      "againstVotes": 420,
+      "quorum": { "current": 1670, "required": 2000 },
+      "endTs": "2025-12-31T23:59:59Z",
+      "description": "Raise the minimum confidence threshold for automatic event resolution from 90% to 95% to improve accuracy."
+    },
+    {
+      "id": "prop-002",
+      "title": "Enable Copy Trading Beta",
+      "status": "PASSED",
+      "forVotes": 2100,
+      "againstVotes": 180,
+      "quorum": { "current": 2280, "required": 2000 },
+      "endTs": "2025-03-01T00:00:00Z",
+      "description": "Open beta for copy trading strategies."
+    },
+    {
+      "id": "prop-003",
+      "title": "Reduce Trading Fee to 0.2%",
+      "status": "FAILED",
+      "forVotes": 500,
+      "againstVotes": 850,
+      "quorum": { "current": 1350, "required": 2000 },
+      "endTs": "2025-05-01T00:00:00Z",
+      "description": "Reduce market fee for increased volume."
+    },
+    {
+      "id": "prop-004",
+      "title": "Treasury Transparency Report Q4",
+      "status": "PENDING",
+      "forVotes": 0,
+      "againstVotes": 0,
+      "quorum": { "current": 0, "required": 2000 },
+      "endTs": "2025-12-31T23:59:59Z",
+      "description": "Publish quarterly treasury report."
+    }
+  ]
+}
