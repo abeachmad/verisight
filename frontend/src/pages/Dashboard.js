@@ -107,9 +107,15 @@ const Dashboard = () => {
         high_confidence_count: 1180
       });
       setEvents(eventsFixture);
-      setConfDist(toArray(charts.confidenceBuckets));
-      setVolume7d(toArray(charts.volume7d));
-      setCategories(toArray(charts.categories));
+      const vol = toArray(charts.volume7d);
+      const conf = toArray(charts.confidenceBuckets);
+      const cats = toArray(charts.categories);
+      
+      setConfDist(conf);
+      setVolume7d(vol);
+      setCategories(cats);
+      
+      console.debug('[Dashboard demo] vol7=', vol.length, 'conf=', conf.reduce((s,i)=>s+(i.count||0),0), 'cats=', cats.reduce((s,i)=>s+(i.value||0),0));
       setLoading(false);
       return;
     }

@@ -1,38 +1,33 @@
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { ensureSeries7 } from './chartGuards';
 
-const toArr = (x) => Array.isArray(x) ? x : (x ? [x] : []);
-const fmtUSD = (v) => `$${Number(v || 0).toLocaleString()}`;
-
-export default function SimpleLineChart({ data, xKey = 'd', yKey = 'usd', height = 280 }) {
+export default function SimpleLineChart({ data, height = 260 }) {
+  const safeData = ensureSeries7(data);
+  
   return (
-    <div style={{ height }}>
+    <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={toArr(data)} margin={{ top: 8, right: 12, bottom: 8, left: 12 }}>
-          <CartesianGrid stroke="var(--chart-grid, rgba(255,255,255,0.06))" vertical={false} />
-          <XAxis dataKey={xKey} tick={false} axisLine={false} />
-          <YAxis
-            width={60}
-            axisLine={false}
-            tick={{ fill: 'rgba(255,255,255,0.55)' }}
-            tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : v}
-          />
+        <LineChart data={safeData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
+          <CartesianGrid stroke="rgba(255,255,255,0.06)" />
+          <XAxis dataKey="d" tick={{ fill: '#9ca3af', fontSize: 12 }} tickMargin={8} />
+          <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} width={48} />
           <Tooltip
-            labelStyle={{ color: 'white' }}
-            formatter={(v) => [fmtUSD(v), 'Volume']}
             contentStyle={{
-              backgroundColor: '#141b2d',
-              border: '1px solid #00FFFF50',
+              background: '#0b1220',
+              border: '1px solid #10b981',
+              color: '#e5e7eb',
               borderRadius: '8px'
             }}
+            formatter={(v) => [`$${Number(v || 0).toLocaleString()}`, 'Volume']}
           />
           <Line
             type="monotone"
-            dataKey={yKey}
-            stroke="var(--chart-accent, #22d3ee)"
+            dataKey="usd"
+            stroke="#22d3ee"
             strokeWidth={3}
             dot={false}
-            isAnimationActive={false}
-            strokeOpacity={0.95}
+            activeDot={{ r: 4 }}
+            connectNulls
           />
         </LineChart>
       </ResponsiveContainer>

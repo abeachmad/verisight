@@ -1,31 +1,36 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { ensureCategories } from './chartGuards';
 
-const toArr = (x) => Array.isArray(x) ? x : (x ? [x] : []);
-const palette = ['#22d3ee', '#34d399', '#a78bfa', '#f59e0b', '#f472b6'];
+const COLORS = ['#22d3ee', '#34d399', '#f59e0b', '#e879f9', '#60a5fa'];
 
-export default function SimplePieChart({ data, nameKey = 'name', valueKey = 'value', height = 280 }) {
-  const arr = toArr(data);
+export default function SimplePieChart({ data, height = 260 }) {
+  const safeData = ensureCategories(data);
+  
   return (
-    <div style={{ height }}>
+    <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Tooltip
-            labelStyle={{ color: 'white' }}
             contentStyle={{
-              backgroundColor: '#141b2d',
-              border: '1px solid #00FFFF50',
+              background: '#0b1220',
+              border: '1px solid #10b981',
+              color: '#e5e7eb',
               borderRadius: '8px'
             }}
           />
           <Pie
-            data={arr}
-            dataKey={valueKey}
-            nameKey={nameKey}
-            outerRadius={100}
+            data={safeData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
             innerRadius={60}
-            isAnimationActive={false}
+            outerRadius={95}
+            label
           >
-            {arr.map((_, i) => <Cell key={i} fill={palette[i % palette.length]} />)}
+            {safeData.map((_, i) => (
+              <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+            ))}
           </Pie>
         </PieChart>
       </ResponsiveContainer>

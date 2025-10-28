@@ -1,24 +1,25 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { ensureBuckets } from './chartGuards';
 
-const toArr = (x) => Array.isArray(x) ? x : (x ? [x] : []);
-
-export default function SimpleBarChart({ data, xKey = 'range', yKey = 'count', height = 280 }) {
+export default function SimpleBarChart({ data, height = 260 }) {
+  const safeData = ensureBuckets(data);
+  
   return (
-    <div style={{ height }}>
+    <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={toArr(data)} margin={{ top: 8, right: 12, bottom: 8, left: 12 }}>
-          <CartesianGrid stroke="var(--chart-grid, rgba(255,255,255,0.06))" vertical={false} />
-          <XAxis dataKey={xKey} tick={{ fill: 'rgba(255,255,255,0.55)' }} axisLine={false}/>
-          <YAxis allowDecimals={false} tick={{ fill: 'rgba(255,255,255,0.55)' }} axisLine={false}/>
+        <BarChart data={safeData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
+          <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+          <XAxis dataKey="range" tick={{ fill: '#9ca3af', fontSize: 12 }} tickMargin={8} />
+          <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} width={48} allowDecimals={false} />
           <Tooltip
-            labelStyle={{ color: 'white' }}
             contentStyle={{
-              backgroundColor: '#141b2d',
-              border: '1px solid #00FFFF50',
+              background: '#0b1220',
+              border: '1px solid #10b981',
+              color: '#e5e7eb',
               borderRadius: '8px'
             }}
           />
-          <Bar dataKey={yKey} fill="var(--chart-accent-2, #34d399)" isAnimationActive={false} />
+          <Bar dataKey="count" fill="#34d399" />
         </BarChart>
       </ResponsiveContainer>
     </div>
