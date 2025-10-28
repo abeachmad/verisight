@@ -2,25 +2,96 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { isDemo } from '../utils/demoFlags';
 import analyticsOverview from '../mocks/fixtures/analytics_overview.json';
-import { take } from '../utils/safeList';
+import charts from '../mocks/fixtures/analytics_charts.json';
+import { take, toArray } from '../utils/safeList';
 import eventsFixture from '../mocks/fixtures/events.json';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, TrendingUp, CheckCircle, AlertCircle, BarChart3, Eye } from 'lucide-react';
 import { toast } from 'sonner';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import SimpleBarChart from '../components/charts/SimpleBarChart';
+import SimpleLineChart from '../components/charts/SimpleLineChart';
+import SimplePieChart from '../components/charts/SimplePieChart';
+import SparklineMini from '../components/charts/SparklineMini';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Helper functions
+function timeAgo(iso) {
+  try {
+    const d = new Date(iso);
+    const s = (Date.now() - d.getTime()) / 1000;
+    if (!isFinite(s)) return '—';
+    if (s < 60) return `${Math.floor(s)}s ago`;
+    if (s < 3600) return `${Math.floor(s/60)}m ago`;
+    if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+    return `${Math.floor(s/86400)}d ago`;
+  } catch { return '—'; }
+}
+
+function hashString(s = '') {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h) + s.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+function toPct(x) {
+  if (x == null) return 75;
+  const n = typeof x === 'number' ? x : parseFloat(String(x).replace('%',''));
+  if (!isFinite(n)) return 75;
+  return n <= 1 ? n * 100 : n;
+}
+
+function genSparkline(seedLabel, basePct = 75, n = 16) {
+  const seed = hashString(String(seedLabel || 'seed'));
+  const out = [];
+  let v = Math.max(5, Math.min(95, basePct));
+  for (let i = 0; i < n; i++) {
+    const rnd = ((seed * (i + 11)) % 997) / 997;
+    const delta = (rnd - 0.5) * 6;
+    v = Math.max(5, Math.min(95, v + delta));
+    out.push({ t: i, v: Number(v.toFixed(1)) });
+  }
+  return out;
+}
+
+function deltaFromSeries(series) {
+  const arr = toArray(series);
+  if (arr.length < 2) return 0;
+  const a = Number(arr[arr.length - 2]?.v) || 0;
+  const b = Number(arr[arr.length - 1]?.v) || 0;
+  const d = b - a;
+  return Number(d.toFixed(1));
+}
+
+function deltaArrow(d) {
+  if (d > 0.5) return '▲';
+  if (d < -0.5) return '▼';
+  return '→';
+}
+
+function deltaClass(d) {
+  if (d > 0.5) return 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
+  if (d < -0.5) return 'text-rose-400 border-rose-500/30 bg-rose-500/10';
+  return 'text-amber-400 border-amber-500/30 bg-amber-500/10';
+}
 
 const Dashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [agentStats, setAgentStats] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confDist, setConfDist] = useState([]);
+  const [volume7d, setVolume7d] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    if (isDemo()) {
+    const DEMO = isDemo();
+    if (DEMO) {
       setAnalytics({
         total_events: analyticsOverview.totals.events,
         active_markets: analyticsOverview.totals.active_markets,
@@ -34,6 +105,9 @@ const Dashboard = () => {
         high_confidence_count: 1180
       });
       setEvents(eventsFixture);
+      setConfDist(toArray(charts.confidence_distribution));
+      setVolume7d(toArray(charts.volume_7d));
+      setCategories(toArray(charts.event_categories));
       setLoading(false);
       return;
     }
@@ -41,7 +115,6 @@ const Dashboard = () => {
   }, []);
 
   const fetchDashboardData = async () => {
-    
     try {
       const [analyticsRes, agentStatsRes, eventsRes] = await Promise.all([
         axios.get(`${API}/analytics/overview`),
@@ -59,31 +132,6 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
-
-  // Mock chart data
-  const volumeData = [
-    { name: 'Mon', volume: 12000 },
-    { name: 'Tue', volume: 19000 },
-    { name: 'Wed', volume: 15000 },
-    { name: 'Thu', volume: 25000 },
-    { name: 'Fri', volume: 32000 },
-    { name: 'Sat', volume: 28000 },
-    { name: 'Sun', volume: 35000 }
-  ];
-
-  const categoryData = [
-    { name: 'Sports', value: 400, color: '#00FF00' },
-    { name: 'Politics', value: 300, color: '#00FFFF' },
-    { name: 'Crypto', value: 300, color: '#FF00FF' },
-    { name: 'General', value: 200, color: '#FFFF00' }
-  ];
-
-  const confidenceData = [
-    { range: '0-60%', count: 5 },
-    { range: '60-80%', count: 15 },
-    { range: '80-90%', count: 45 },
-    { range: '90-100%', count: 85 }
-  ];
 
   if (loading) {
     return (
@@ -156,18 +204,10 @@ const Dashboard = () => {
         {/* Tabs */}
         <Tabs defaultValue="events" className="mb-8">
           <TabsList className="bg-[#141b2d] border border-[#00FFFF]/30">
-            <TabsTrigger value="events" data-testid="tab-events">
-              Events
-            </TabsTrigger>
-            <TabsTrigger value="agents" data-testid="tab-agents">
-              AI Agents
-            </TabsTrigger>
-            <TabsTrigger value="markets" data-testid="tab-markets">
-              Markets
-            </TabsTrigger>
-            <TabsTrigger value="analytics" data-testid="tab-analytics">
-              Analytics
-            </TabsTrigger>
+            <TabsTrigger value="events" data-testid="tab-events">Events</TabsTrigger>
+            <TabsTrigger value="agents" data-testid="tab-agents">AI Agents</TabsTrigger>
+            <TabsTrigger value="markets" data-testid="tab-markets">Markets</TabsTrigger>
+            <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
           </TabsList>
 
           {/* Events Tab */}
@@ -177,41 +217,56 @@ const Dashboard = () => {
                 Recent Events
               </h2>
               <div className="space-y-4">
-                {take(events, 10).map((event, idx) => (
-                  <div
-                    key={event.id || event.event_id || idx}
-                    className="flex items-center justify-between p-4 bg-[#0A0F1F]/50 rounded-lg hover:bg-[#0A0F1F] smooth-transition"
-                    data-testid={`event-row-${event.id || event.event_id || idx}`}
-                  >
-                    <div className="flex-1">
-                      <h3 className="text-[#00FFFF] font-semibold mb-1">{event.event_title}</h3>
-                      <p className="text-[#A9B4C2] text-sm line-clamp-1">
-                        {event.event_description}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      {event.confidence && (
-                        <div className="text-center">
-                          <div className="text-[#00FFFF] font-semibold">
-                            {(event.confidence * 100).toFixed(0)}%
-                          </div>
-                          <div className="text-[#A9B4C2] text-xs">Confidence</div>
+                {take(events, 10).map((event, idx) => {
+                  const key = event?.id || event?.event_id || event?.title || `evt-${idx}`;
+                  const pct = toPct(event?.confidence);
+                  const sparkData = genSparkline(key, pct, 16);
+                  const delta = deltaFromSeries(sparkData);
+                  
+                  return (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-4 bg-[#0A0F1F]/50 rounded-lg hover:bg-[#0A0F1F] smooth-transition"
+                      data-testid={`event-row-${key}`}
+                    >
+                      <div className="flex-1">
+                        <div className="font-semibold text-[#00FFFF] mb-1">
+                          {event?.title || event?.event_title || 'Untitled Event'}
                         </div>
-                      )}
-                      <div>
-                        {event.status === 'verified' && (
-                          <CheckCircle className="h-6 w-6 text-green-400" />
-                        )}
-                        {event.status === 'verifying' && (
-                          <Activity className="h-6 w-6 text-yellow-400 animate-pulse" />
-                        )}
-                        {event.status === 'pending' && (
-                          <AlertCircle className="h-6 w-6 text-[#A9B4C2]" />
+                        <div className="text-xs text-slate-400 mb-2">
+                          {timeAgo(event?.created_at || event?.ts)} • {event?.category || 'General'}
+                        </div>
+                        {isDemo() && (
+                          <div className="mt-2">
+                            <SparklineMini data={sparkData} yKey="v" height={40} />
+                          </div>
                         )}
                       </div>
+                      <div className="flex items-center space-x-4 ml-4">
+                        {event.confidence && (
+                          <div className="text-center">
+                            <div className="text-[#00FFFF] font-semibold">
+                              {(event.confidence * 100).toFixed(0)}%
+                            </div>
+                            <div className="text-[#A9B4C2] text-xs">Confidence</div>
+                            {isDemo() && (
+                              <div className="mt-1 flex justify-end">
+                                <span className={`px-1.5 py-0.5 rounded-md border text-[11px] leading-none ${deltaClass(delta)}`}>
+                                  {deltaArrow(delta)} {delta > 0 ? '+' : ''}{Math.abs(delta).toFixed(1)}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div>
+                          {event.status === 'verified' && <CheckCircle className="h-6 w-6 text-green-400" />}
+                          {event.status === 'verifying' && <Activity className="h-6 w-6 text-yellow-400 animate-pulse" />}
+                          {event.status === 'pending' && <AlertCircle className="h-6 w-6 text-[#A9B4C2]" />}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
           </TabsContent>
@@ -255,7 +310,7 @@ const Dashboard = () => {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[#A9B4C2]">Accuracy Rate</span>
                       <span className="text-[#00FFFF] font-semibold">
-                        {agentStats?.accuracy_rate || 0}%
+                        {((agentStats?.accuracy_rate || 0) * 100).toFixed(0)}%
                       </span>
                     </div>
                     <div className="w-full bg-[#0A0F1F] rounded-full h-2">
@@ -284,21 +339,13 @@ const Dashboard = () => {
                 <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                   Confidence Distribution
                 </h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={confidenceData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#00FFFF20" />
-                    <XAxis dataKey="range" stroke="#A9B4C2" />
-                    <YAxis stroke="#A9B4C2" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#141b2d',
-                        border: '1px solid #00FFFF50',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Bar dataKey="count" fill="#00FFFF" />
-                  </BarChart>
-                </ResponsiveContainer>
+                {toArray(confDist).length > 0 ? (
+                  <SimpleBarChart data={confDist} xKey="bucket" yKey="count" />
+                ) : (
+                  <div className="h-[280px] flex items-center justify-center text-[#A9B4C2]">
+                    No data available
+                  </div>
+                )}
               </Card>
             </div>
           </TabsContent>
@@ -309,21 +356,13 @@ const Dashboard = () => {
               <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                 Trading Volume (7 Days)
               </h2>
-              <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={volumeData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#00FFFF20" />
-                  <XAxis dataKey="name" stroke="#A9B4C2" />
-                  <YAxis stroke="#A9B4C2" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#141b2d',
-                      border: '1px solid #00FFFF50',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Line type="monotone" dataKey="volume" stroke="#00FFFF" strokeWidth={3} />
-                </LineChart>
-              </ResponsiveContainer>
+              {toArray(volume7d).length > 0 ? (
+                <SimpleLineChart data={volume7d} xKey="date" yKey="usd" />
+              ) : (
+                <div className="h-[320px] flex items-center justify-center text-[#A9B4C2]">
+                  No data available
+                </div>
+              )}
             </Card>
           </TabsContent>
 
@@ -334,25 +373,13 @@ const Dashboard = () => {
                 <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                   Event Categories
                 </h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(entry) => entry.name}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${entry.name}-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                {toArray(categories).length > 0 ? (
+                  <SimplePieChart data={categories} nameKey="label" valueKey="count" />
+                ) : (
+                  <div className="h-[320px] flex items-center justify-center text-[#A9B4C2]">
+                    No data available
+                  </div>
+                )}
               </Card>
 
               <Card className="bg-[#141b2d] border-[#00FFFF]/30 p-6">

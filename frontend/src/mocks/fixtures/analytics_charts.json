@@ -1,0 +1,25 @@
+{
+  "volume_7d": [
+    { "date": "2025-10-23", "usd": 210345 },
+    { "date": "2025-10-24", "usd": 190230 },
+    { "date": "2025-10-25", "usd": 225410 },
+    { "date": "2025-10-26", "usd": 235120 },
+    { "date": "2025-10-27", "usd": 201880 },
+    { "date": "2025-10-28", "usd": 248990 },
+    { "date": "2025-10-29", "usd": 251230 }
+  ],
+  "confidence_distribution": [
+    { "bucket": "50–60", "count": 12 },
+    { "bucket": "60–70", "count": 24 },
+    { "bucket": "70–80", "count": 31 },
+    { "bucket": "80–90", "count": 18 },
+    { "bucket": "90–100", "count": 15 }
+  ],
+  "event_categories": [
+    { "label": "Crypto", "count": 18 },
+    { "label": "Elections", "count": 12 },
+    { "label": "Sports", "count": 8 },
+    { "label": "Tech", "count": 6 },
+    { "label": "Other", "count": 5 }
+  ]
+}
