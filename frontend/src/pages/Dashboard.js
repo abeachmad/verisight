@@ -105,9 +105,9 @@ const Dashboard = () => {
         high_confidence_count: 1180
       });
       setEvents(eventsFixture);
-      setConfDist(toArray(charts.confidence_distribution));
-      setVolume7d(toArray(charts.volume_7d));
-      setCategories(toArray(charts.event_categories));
+      setConfDist(toArray(charts.confidenceBuckets));
+      setVolume7d(toArray(charts.volume7d));
+      setCategories(toArray(charts.categories));
       setLoading(false);
       return;
     }
@@ -340,7 +340,7 @@ const Dashboard = () => {
                   Confidence Distribution
                 </h2>
                 {toArray(confDist).length > 0 ? (
-                  <SimpleBarChart data={confDist} xKey="bucket" yKey="count" />
+                  <SimpleBarChart data={confDist} xKey="range" yKey="count" />
                 ) : (
                   <div className="h-[280px] flex items-center justify-center text-[#A9B4C2]">
                     No data available
@@ -357,7 +357,7 @@ const Dashboard = () => {
                 Trading Volume (7 Days)
               </h2>
               {toArray(volume7d).length > 0 ? (
-                <SimpleLineChart data={volume7d} xKey="date" yKey="usd" />
+                <SimpleLineChart data={volume7d} xKey="d" yKey="usd" />
               ) : (
                 <div className="h-[320px] flex items-center justify-center text-[#A9B4C2]">
                   No data available
@@ -374,7 +374,7 @@ const Dashboard = () => {
                   Event Categories
                 </h2>
                 {toArray(categories).length > 0 ? (
-                  <SimplePieChart data={categories} nameKey="label" valueKey="count" />
+                  <SimplePieChart data={categories} nameKey="name" valueKey="value" />
                 ) : (
                   <div className="h-[320px] flex items-center justify-center text-[#A9B4C2]">
                     No data available

@@ -1,25 +1,25 @@
 {
-  "volume_7d": [
-    { "date": "2025-10-23", "usd": 210345 },
-    { "date": "2025-10-24", "usd": 190230 },
-    { "date": "2025-10-25", "usd": 225410 },
-    { "date": "2025-10-26", "usd": 235120 },
-    { "date": "2025-10-27", "usd": 201880 },
-    { "date": "2025-10-28", "usd": 248990 },
-    { "date": "2025-10-29", "usd": 251230 }
+  "confidenceBuckets": [
+    { "range": "50–60", "count": 84 },
+    { "range": "60–70", "count": 132 },
+    { "range": "70–80", "count": 205 },
+    { "range": "80–90", "count": 318 },
+    { "range": "90–100", "count": 545 }
   ],
-  "confidence_distribution": [
-    { "bucket": "50–60", "count": 12 },
-    { "bucket": "60–70", "count": 24 },
-    { "bucket": "70–80", "count": 31 },
-    { "bucket": "80–90", "count": 18 },
-    { "bucket": "90–100", "count": 15 }
+  "volume7d": [
+    { "d": "2025-01-01", "usd": 18200 },
+    { "d": "2025-01-02", "usd": 22100 },
+    { "d": "2025-01-03", "usd": 20500 },
+    { "d": "2025-01-04", "usd": 25150 },
+    { "d": "2025-01-05", "usd": 26300 },
+    { "d": "2025-01-06", "usd": 24100 },
+    { "d": "2025-01-07", "usd": 28950 }
   ],
-  "event_categories": [
-    { "label": "Crypto", "count": 18 },
-    { "label": "Elections", "count": 12 },
-    { "label": "Sports", "count": 8 },
-    { "label": "Tech", "count": 6 },
-    { "label": "Other", "count": 5 }
+  "categories": [
+    { "name": "Crypto", "value": 36 },
+    { "name": "Politics", "value": 22 },
+    { "name": "Sports", "value": 18 },
+    { "name": "Tech", "value": 14 },
+    { "name": "Other", "value": 10 }
   ]
 }

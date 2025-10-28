@@ -1,23 +1,39 @@
-import React from 'react';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
-import { toArray } from '../../utils/safeList';
+import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 
-export default function SimpleLineChart({ data = [], xKey, yKey, height = 320 }) {
-  const rows = toArray(data);
+const toArr = (x) => Array.isArray(x) ? x : (x ? [x] : []);
+const fmtUSD = (v) => `$${Number(v || 0).toLocaleString()}`;
+
+export default function SimpleLineChart({ data, xKey = 'd', yKey = 'usd', height = 280 }) {
   return (
-    <div className="w-full h-full">
-      <ResponsiveContainer width="100%" height={height}>
-        <LineChart data={rows}>
-          <XAxis dataKey={xKey} stroke="#A9B4C2" />
-          <YAxis stroke="#A9B4C2" />
+    <div style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={toArr(data)} margin={{ top: 8, right: 12, bottom: 8, left: 12 }}>
+          <CartesianGrid stroke="var(--chart-grid, rgba(255,255,255,0.06))" vertical={false} />
+          <XAxis dataKey={xKey} tick={false} axisLine={false} />
+          <YAxis
+            width={60}
+            axisLine={false}
+            tick={{ fill: 'rgba(255,255,255,0.55)' }}
+            tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : v}
+          />
           <Tooltip
+            labelStyle={{ color: 'white' }}
+            formatter={(v) => [fmtUSD(v), 'Volume']}
             contentStyle={{
               backgroundColor: '#141b2d',
               border: '1px solid #00FFFF50',
               borderRadius: '8px'
             }}
           />
-          <Line type="monotone" dataKey={yKey} stroke="#00FFFF" strokeWidth={3} dot={false} />
+          <Line
+            type="monotone"
+            dataKey={yKey}
+            stroke="var(--chart-accent, #22d3ee)"
+            strokeWidth={3}
+            dot={false}
+            isAnimationActive={false}
+            strokeOpacity={0.95}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
