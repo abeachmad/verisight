@@ -310,7 +310,7 @@ const Dashboard = () => {
           </TabsContent>
 
           {/* AI Agents Tab */}
-          <TabsContent value="agents" className="mt-6" forceMount hidden={activeTab !== 'agents'}>
+          <TabsContent value="agents" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-[#141b2d] border-[#00FFFF]/30 p-6">
                 <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
@@ -385,7 +385,7 @@ const Dashboard = () => {
           </TabsContent>
 
           {/* Markets Tab */}
-          <TabsContent value="markets" className="mt-6" forceMount hidden={activeTab !== 'markets'}>
+          <TabsContent value="markets" className="mt-6">
             <Card className="bg-[#141b2d] border-[#00FFFF]/30 p-6">
               <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                 Trading Volume (7 Days)
@@ -397,7 +397,7 @@ const Dashboard = () => {
           </TabsContent>
 
           {/* Analytics Tab */}
-          <TabsContent value="analytics" className="mt-6" forceMount hidden={activeTab !== 'analytics'}>
+          <TabsContent value="analytics" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-[#141b2d] border-[#00FFFF]/30 p-6">
                 <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
