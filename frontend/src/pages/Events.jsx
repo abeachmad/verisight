@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { DEMO } from '../utils/demoFlags';
 import eventsFixture from '../mocks/fixtures/events.json';
 
 const CATEGORIES = ['All', 'Politics', 'Crypto', 'Sports', 'Science', 'Tech', 'Entertainment'];
-const isDemoMode = process.env.REACT_APP_MODE === 'MOCK' || process.env.REACT_APP_DEMO_DATA === 'true';
 
 export default function Events() {
-  const [events, setEvents] = useState(isDemoMode ? eventsFixture : []);
-  const [loading, setLoading] = useState(!isDemoMode);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
 
   useEffect(() => {
-    if (isDemoMode) {
+    if (DEMO) {
+      console.info('DEMO mode (Events): using fixtures', eventsFixture.length);
       setEvents(eventsFixture);
       setLoading(false);
       return;
@@ -23,14 +24,9 @@ export default function Events() {
         const data = await res.json();
         if (data && data.length > 0) {
           setEvents(data);
-        } else if (isDemoMode) {
-          setEvents(eventsFixture);
         }
       } catch (err) {
         console.error('Failed to fetch events:', err);
-        if (isDemoMode) {
-          setEvents(eventsFixture);
-        }
       } finally {
         setLoading(false);
       }

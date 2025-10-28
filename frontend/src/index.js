@@ -2,17 +2,18 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
-
-const enableMock = process.env.REACT_APP_MODE === 'MOCK' || process.env.REACT_APP_DEMO_DATA === 'true';
+import { DEMO } from './utils/demoFlags';
 
 async function bootstrap() {
-  if (enableMock) {
-    // Unregister old service workers
-    if ('serviceWorker' in navigator) {
+  // Service Worker hygiene - unregister all at startup
+  if ('serviceWorker' in navigator) {
+    try {
       const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
-    }
-    
+      regs.forEach(r => r.unregister());
+    } catch (_) {}
+  }
+  
+  if (DEMO) {
     const { worker } = await import('./mocks/browser');
     await worker.start({
       onUnhandledRequest: 'bypass',

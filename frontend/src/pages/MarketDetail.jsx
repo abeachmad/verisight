@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { DEMO } from '../utils/demoFlags';
 import marketsFixture from '../mocks/fixtures/markets.json';
 import oddsFixture from '../mocks/fixtures/odds.json';
 import evidenceFixture from '../mocks/fixtures/evidence.json';
 import eventsFixture from '../mocks/fixtures/events.json';
-
-const isDemoMode = process.env.REACT_APP_MODE === 'MOCK' || process.env.REACT_APP_DEMO_DATA === 'true';
 
 const jitter = (base, range) => base + (Math.random() * range * 2 - range);
 
@@ -16,7 +15,8 @@ export default function MarketDetail() {
 
   useEffect(() => {
     const loadMarket = () => {
-      if (isDemoMode) {
+      if (DEMO) {
+        console.info('DEMO mode (MarketDetail): using fixtures for id=', id);
         const marketData = marketsFixture.find(m => m.market_id === id);
         if (marketData) {
           const odds = oddsFixture[id] || { yes: 0.5, no: 0.5, implied_vol: 0.1 };
@@ -50,14 +50,9 @@ export default function MarketDetail() {
         const data = await res.json();
         if (data && data.market_id) {
           setMarket(data);
-        } else if (isDemoMode) {
-          loadMarket();
         }
       } catch (err) {
         console.error('Failed to fetch market:', err);
-        if (isDemoMode) {
-          loadMarket();
-        }
       } finally {
         setLoading(false);
       }
@@ -121,7 +116,7 @@ export default function MarketDetail() {
           <div className="bg-gray-900 rounded-lg p-4 mb-6">
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
               On-Chain Evidence
-              {isDemoMode && <span className="text-xs px-2 py-1 bg-purple-600 rounded">mock</span>}
+              {DEMO && <span className="text-xs px-2 py-1 bg-purple-600 rounded">mock</span>}
             </h3>
             <div className="grid gap-2 text-sm">
               <div className="flex gap-2">

@@ -1,0 +1,1 @@
+export const DEMO = (process.env.REACT_APP_DEMO_DATA === 'true') || (process.env.REACT_APP_MODE === 'MOCK');

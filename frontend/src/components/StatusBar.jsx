@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { DEMO } from '../utils/demoFlags';
 
 export default function StatusBar() {
   const [health, setHealth] = useState({ status: 'unknown', blockHeight: 0, latency: 0 });
-  const isDemoMode = process.env.REACT_APP_MODE === 'MOCK' || process.env.REACT_APP_DEMO_DATA === 'true';
 
   useEffect(() => {
+    if (DEMO) {
+      setHealth({ status: 'healthy', blockHeight: 1000 + Math.floor(Date.now() / 5000), latency: 45 });
+      return;
+    }
+    
     const fetchHealth = async () => {
       try {
         const res = await fetch('/health');
@@ -29,9 +34,9 @@ export default function StatusBar() {
   return (
     <div className="bg-gray-900 text-white px-4 py-2 flex items-center justify-between text-sm">
       <div className="flex items-center gap-4">
-        {isDemoMode && (
+        {DEMO && (
           <span className="px-2 py-1 bg-purple-600 text-white rounded text-xs font-bold">
-            MOCK DATA
+            MOCK DATA (DEMO)
           </span>
         )}
         <div className="flex items-center gap-2">
@@ -40,7 +45,6 @@ export default function StatusBar() {
         </div>
         <div>Block: {health.blockHeight || 0}</div>
         <div>Latency: {health.latency || 0}ms</div>
-        {isDemoMode && <span className="text-xs text-gray-400">(Mock Mode)</span>}
       </div>
     </div>
   );
