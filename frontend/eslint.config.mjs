@@ -7,6 +7,9 @@ import importPlugin from 'eslint-plugin-import';
 export default [
   js.configs.recommended,
   {
+    ignores: ['build/**', 'node_modules/**', 'public/mockServiceWorker.js'],
+  },
+  {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 2021,

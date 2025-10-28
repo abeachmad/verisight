@@ -1,0 +1,129 @@
+[
+  {
+    "event_id": "evt_001",
+    "title": "Bitcoin reaches $100,000 by end of 2025",
+    "category": "Crypto",
+    "status": "verified",
+    "confidence": 0.91,
+    "created_at": "2025-01-15T10:30:00Z",
+    "sources": [
+      "https://coindesk.com/price/bitcoin",
+      "https://cointelegraph.com/bitcoin-price",
+      "https://bloomberg.com/crypto"
+    ]
+  },
+  {
+    "event_id": "evt_002",
+    "title": "US Presidential Election 2024 Winner",
+    "category": "Politics",
+    "status": "verified",
+    "confidence": 0.87,
+    "created_at": "2025-01-14T08:15:00Z",
+    "sources": [
+      "https://fivethirtyeight.com/politics",
+      "https://realclearpolitics.com"
+    ]
+  },
+  {
+    "event_id": "evt_003",
+    "title": "SpaceX Mars Mission Launch Success",
+    "category": "Science",
+    "status": "verifying",
+    "confidence": 0.73,
+    "created_at": "2025-01-13T14:20:00Z",
+    "sources": [
+      "https://spacex.com/missions",
+      "https://nasa.gov/mars",
+      "https://space.com/spacex"
+    ]
+  },
+  {
+    "event_id": "evt_004",
+    "title": "Super Bowl LIX Winner Prediction",
+    "category": "Sports",
+    "status": "verified",
+    "confidence": 0.82,
+    "created_at": "2025-01-12T16:45:00Z",
+    "sources": [
+      "https://espn.com/nfl",
+      "https://nfl.com/superbowl",
+      "https://sports.yahoo.com/nfl"
+    ]
+  },
+  {
+    "event_id": "evt_005",
+    "title": "Apple releases AR glasses in 2025",
+    "category": "Tech",
+    "status": "pending",
+    "confidence": 0.65,
+    "created_at": "2025-01-11T09:30:00Z",
+    "sources": [
+      "https://apple.com/newsroom",
+      "https://theverge.com/apple"
+    ]
+  },
+  {
+    "event_id": "evt_006",
+    "title": "Oscars 2025 Best Picture Winner",
+    "category": "Entertainment",
+    "status": "verified",
+    "confidence": 0.78,
+    "created_at": "2025-01-10T11:00:00Z",
+    "sources": [
+      "https://oscars.org",
+      "https://variety.com/oscars",
+      "https://hollywoodreporter.com/oscars"
+    ]
+  },
+  {
+    "event_id": "evt_007",
+    "title": "Ethereum 2.0 Full Rollout Complete",
+    "category": "Crypto",
+    "status": "verifying",
+    "confidence": 0.69,
+    "created_at": "2025-01-09T13:15:00Z",
+    "sources": [
+      "https://ethereum.org",
+      "https://coindesk.com/ethereum",
+      "https://decrypt.co/ethereum"
+    ]
+  },
+  {
+    "event_id": "evt_008",
+    "title": "AI Model Passes Turing Test Officially",
+    "category": "Tech",
+    "status": "verified",
+    "confidence": 0.85,
+    "created_at": "2025-01-08T15:40:00Z",
+    "sources": [
+      "https://openai.com/research",
+      "https://arxiv.org/ai",
+      "https://nature.com/ai"
+    ]
+  },
+  {
+    "event_id": "evt_009",
+    "title": "FIFA World Cup 2026 Host City Confirmed",
+    "category": "Sports",
+    "status": "verified",
+    "confidence": 0.92,
+    "created_at": "2025-01-07T10:20:00Z",
+    "sources": [
+      "https://fifa.com/worldcup",
+      "https://espn.com/soccer",
+      "https://bbc.com/sport/football"
+    ]
+  },
+  {
+    "event_id": "evt_010",
+    "title": "Climate Summit 2025 Agreement Reached",
+    "category": "Politics",
+    "status": "pending",
+    "confidence": 0.42,
+    "created_at": "2025-01-06T12:00:00Z",
+    "sources": [
+      "https://un.org/climate",
+      "https://reuters.com/climate"
+    ]
+  }
+]

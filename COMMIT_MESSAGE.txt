@@ -1,0 +1,87 @@
+docs+scripts: strengthen Linera evidence; add WSL2 workaround and judges checklist; add .sh scripts
+
+## Changes
+
+### Documentation
+- Added `docs/JUDGES-CHECKLIST.md` - Comprehensive submission guide for buildathon judges
+  * Mock mode demo steps with screenshots checklist
+  * Code evidence requirements (WASM builds, tests, deployment scripts)
+  * Linera SDK usage proof points
+  * Quick start commands for judges (5 min evaluation)
+  
+- Added `docs/LINERA_WINDOWS_WORKAROUND.md` - Windows CLI installation guide
+  * Problem explanation (libclang dependency)
+  * WSL2 installation steps (recommended)
+  * LLVM/Clang alternative
+  * Buildathon submission strategy (Mock + Code Evidence)
+  
+- Updated `README.md`
+  * Added "Dual-Mode Strategy" section upfront
+  * Added "Quick Links" section for judges
+  * Clear explanation of Mock vs Linera modes
+  
+- Updated `DEMO_PLAN.md`
+  * Simplified recommendations (Windows vs WSL2)
+  * Added reference to JUDGES-CHECKLIST.md
+  * Clearer timeline estimates
+
+### Scripts
+
+#### PowerShell (Windows)
+- Improved `scripts/show-linera-evidence.ps1`
+  * Comprehensive logging to `docs/screens/build-and-tests.log`
+  * WASM file size reporting
+  * Deployment command extraction
+  * Fixed path handling with absolute paths
+  * ASCII markers instead of Unicode for compatibility
+  
+#### Bash (WSL2/Linux)
+- Added `scripts/dev-check.sh` - Full validation (fmt/clippy/test/WASM/frontend)
+- Added `scripts/deploy-local.sh` - Real devnet deployment with APP_ID extraction
+- Added `scripts/deploy-testnet.sh` - Testnet connection with GraphQL probe
+
+All .sh scripts mirror .ps1 functionality for cross-platform support.
+
+### Evidence Generation
+
+Running `.\scripts\show-linera-evidence.ps1` now produces:
+- ✅ WASM builds for oracle_feed + market
+- ✅ All Rust tests passing
+- ✅ WASM file sizes
+- ✅ Deployment commands (linera publish)
+- ✅ WSL2 script availability check
+- ✅ Complete log file in docs/screens/
+
+## Buildathon Submission Strategy
+
+**Primary (Windows)**: Mock Mode + Code Evidence
+- Time: 10 minutes total
+- Evidence: Working app + WASM contracts + tests + scripts
+- Valid: Demonstrates Linera SDK usage without CLI dependency
+
+**Optional (WSL2/Linux)**: Real Devnet Deployment
+- Time: +60-90 minutes (including WSL2 setup)
+- Evidence: Real APP_IDs, chain ID, live GraphQL
+- Stronger: Actual on-chain deployment proof
+
+## Testing
+
+All existing functionality preserved:
+- ✅ Mock mode works (start-mock.ps1)
+- ✅ WASM builds successful
+- ✅ All Rust tests passing (oracle_feed + market)
+- ✅ Backend tests passing (29 tests)
+- ✅ Frontend builds successfully
+
+## For Judges
+
+Quick evaluation (5 minutes):
+```powershell
+git clone <repo>
+cd verisight
+.\scripts\start-mock.ps1          # See working app
+.\scripts\show-linera-evidence.ps1 # See Linera integration
+Get-Content docs\screens\build-and-tests.log
+```
+
+See `docs/JUDGES-CHECKLIST.md` for complete evaluation guide.

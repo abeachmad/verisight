@@ -1,0 +1,122 @@
+[
+  {
+    "market_id": "mkt_001",
+    "event_id": "evt_001",
+    "title": "Bitcoin reaches $100,000 by end of 2025",
+    "cutoff_at": "2025-12-30T23:59:59Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-001",
+    "tx_hash": "0xDEMO1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef123456",
+    "cid": "QmDemo1XyZ9AbCdEfGhIjKlMnOpQrStUvWxYz1234567890",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_002",
+    "event_id": "evt_002",
+    "title": "US Presidential Election 2024 Winner",
+    "cutoff_at": "2024-11-05T06:00:00Z",
+    "resolved": true,
+    "chain_id": "linera-demo-chain-002",
+    "tx_hash": "0xDEMO2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567",
+    "cid": "QmDemo2YzA0BcDeFgHiJkLmNoPqRsTuVwXyZ2345678901",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_003",
+    "event_id": "evt_003",
+    "title": "SpaceX Mars Mission Launch Success",
+    "cutoff_at": "2025-06-15T12:00:00Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-003",
+    "tx_hash": "0xDEMO3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef12345678",
+    "cid": "QmDemo3ZaB1CdEfGhIjKlMnOpQrStUvWxYz3456789012",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_004",
+    "event_id": "evt_004",
+    "title": "Super Bowl LIX Winner Prediction",
+    "cutoff_at": "2025-02-09T18:00:00Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-004",
+    "tx_hash": "0xDEMO4d5e6f7890abcdef1234567890abcdef1234567890abcdef123456789",
+    "cid": "QmDemo4AbC2DeFgHiJkLmNoPqRsTuVwXyZ4567890123",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_005",
+    "event_id": "evt_005",
+    "title": "Apple releases AR glasses in 2025",
+    "cutoff_at": "2025-12-31T23:59:59Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-005",
+    "tx_hash": "0xDEMO5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890a",
+    "cid": "QmDemo5BcD3EfGhIjKlMnOpQrStUvWxYz5678901234",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_006",
+    "event_id": "evt_006",
+    "title": "Oscars 2025 Best Picture Winner",
+    "cutoff_at": "2025-03-10T02:00:00Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-006",
+    "tx_hash": "0xDEMO6f7890abcdef1234567890abcdef1234567890abcdef1234567890ab",
+    "cid": "QmDemo6CdE4FgHiJkLmNoPqRsTuVwXyZ6789012345",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_007",
+    "event_id": "evt_007",
+    "title": "Ethereum 2.0 Full Rollout Complete",
+    "cutoff_at": "2025-08-31T23:59:59Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-007",
+    "tx_hash": "0xDEMO7890abcdef1234567890abcdef1234567890abcdef1234567890abc",
+    "cid": "QmDemo7DeF5GhIjKlMnOpQrStUvWxYz7890123456",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_008",
+    "event_id": "evt_008",
+    "title": "AI Model Passes Turing Test Officially",
+    "cutoff_at": "2025-07-15T12:00:00Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-008",
+    "tx_hash": "0xDEMO890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
+    "cid": "QmDemo8EfG6HiJkLmNoPqRsTuVwXyZ8901234567",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_009",
+    "event_id": "evt_009",
+    "title": "FIFA World Cup 2026 Host City Confirmed",
+    "cutoff_at": "2026-06-01T12:00:00Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-009",
+    "tx_hash": "0xDEMO90abcdef1234567890abcdef1234567890abcdef1234567890abcde",
+    "cid": "QmDemo9FgH7IjKlMnOpQrStUvWxYz9012345678",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  },
+  {
+    "market_id": "mkt_010",
+    "event_id": "evt_010",
+    "title": "Climate Summit 2025 Agreement Reached",
+    "cutoff_at": "2025-11-30T23:59:59Z",
+    "resolved": false,
+    "chain_id": "linera-demo-chain-010",
+    "tx_hash": "0xDEMO0abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "cid": "QmDemo0GhI8JkLmNoPqRsTuVwXyZ0123456789",
+    "velocity_cap": 0.15,
+    "cooldown_sec": 5000
+  }
+]

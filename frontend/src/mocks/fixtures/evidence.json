@@ -1,0 +1,109 @@
+{
+  "mkt_001": {
+    "cid": "QmDemo1XyZ9AbCdEfGhIjKlMnOpQrStUvWxYz1234567890",
+    "chain_id": "linera-demo-chain-001",
+    "tx_hash": "0xDEMO1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef123456",
+    "confidence": 0.91,
+    "sources": [
+      "https://coindesk.com/price/bitcoin",
+      "https://cointelegraph.com/bitcoin-price",
+      "https://bloomberg.com/crypto"
+    ]
+  },
+  "mkt_002": {
+    "cid": "QmDemo2YzA0BcDeFgHiJkLmNoPqRsTuVwXyZ2345678901",
+    "chain_id": "linera-demo-chain-002",
+    "tx_hash": "0xDEMO2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567",
+    "confidence": 0.87,
+    "sources": [
+      "https://fivethirtyeight.com/politics",
+      "https://realclearpolitics.com"
+    ]
+  },
+  "mkt_003": {
+    "cid": "QmDemo3ZaB1CdEfGhIjKlMnOpQrStUvWxYz3456789012",
+    "chain_id": "linera-demo-chain-003",
+    "tx_hash": "0xDEMO3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef12345678",
+    "confidence": 0.73,
+    "sources": [
+      "https://spacex.com/missions",
+      "https://nasa.gov/mars",
+      "https://space.com/spacex"
+    ]
+  },
+  "mkt_004": {
+    "cid": "QmDemo4AbC2DeFgHiJkLmNoPqRsTuVwXyZ4567890123",
+    "chain_id": "linera-demo-chain-004",
+    "tx_hash": "0xDEMO4d5e6f7890abcdef1234567890abcdef1234567890abcdef123456789",
+    "confidence": 0.82,
+    "sources": [
+      "https://espn.com/nfl",
+      "https://nfl.com/superbowl",
+      "https://sports.yahoo.com/nfl"
+    ]
+  },
+  "mkt_005": {
+    "cid": "QmDemo5BcD3EfGhIjKlMnOpQrStUvWxYz5678901234",
+    "chain_id": "linera-demo-chain-005",
+    "tx_hash": "0xDEMO5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890a",
+    "confidence": 0.65,
+    "sources": [
+      "https://apple.com/newsroom",
+      "https://theverge.com/apple"
+    ]
+  },
+  "mkt_006": {
+    "cid": "QmDemo6CdE4FgHiJkLmNoPqRsTuVwXyZ6789012345",
+    "chain_id": "linera-demo-chain-006",
+    "tx_hash": "0xDEMO6f7890abcdef1234567890abcdef1234567890abcdef1234567890ab",
+    "confidence": 0.78,
+    "sources": [
+      "https://oscars.org",
+      "https://variety.com/oscars",
+      "https://hollywoodreporter.com/oscars"
+    ]
+  },
+  "mkt_007": {
+    "cid": "QmDemo7DeF5GhIjKlMnOpQrStUvWxYz7890123456",
+    "chain_id": "linera-demo-chain-007",
+    "tx_hash": "0xDEMO7890abcdef1234567890abcdef1234567890abcdef1234567890abc",
+    "confidence": 0.69,
+    "sources": [
+      "https://ethereum.org",
+      "https://coindesk.com/ethereum",
+      "https://decrypt.co/ethereum"
+    ]
+  },
+  "mkt_008": {
+    "cid": "QmDemo8EfG6HiJkLmNoPqRsTuVwXyZ8901234567",
+    "chain_id": "linera-demo-chain-008",
+    "tx_hash": "0xDEMO890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
+    "confidence": 0.85,
+    "sources": [
+      "https://openai.com/research",
+      "https://arxiv.org/ai",
+      "https://nature.com/ai"
+    ]
+  },
+  "mkt_009": {
+    "cid": "QmDemo9FgH7IjKlMnOpQrStUvWxYz9012345678",
+    "chain_id": "linera-demo-chain-009",
+    "tx_hash": "0xDEMO90abcdef1234567890abcdef1234567890abcdef1234567890abcde",
+    "confidence": 0.92,
+    "sources": [
+      "https://fifa.com/worldcup",
+      "https://espn.com/soccer",
+      "https://bbc.com/sport/football"
+    ]
+  },
+  "mkt_010": {
+    "cid": "QmDemo0GhI8JkLmNoPqRsTuVwXyZ0123456789",
+    "chain_id": "linera-demo-chain-010",
+    "tx_hash": "0xDEMO0abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "confidence": 0.42,
+    "sources": [
+      "https://un.org/climate",
+      "https://reuters.com/climate"
+    ]
+  }
+}

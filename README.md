@@ -30,6 +30,30 @@ Verisight is a decentralized application (DApp) built on the Linera Layer-1 netw
 - Participate in platform governance
 - Track event verification and market analytics in real-time
 
+## 🎯 Dual-Mode Strategy
+
+**For Buildathon Submission**: We provide two complementary approaches to demonstrate Linera integration:
+
+### 1. Mock Mode (Immediate Demo)
+- **Purpose**: Show complete UI/UX and feature set
+- **Setup**: One command (`.\scripts\start-mock.ps1`)
+- **Evidence**: Full application functionality, realistic on-chain data simulation
+- **Time**: 1 minute setup + 2 minutes demo
+
+### 2. Linera Integration (Code Evidence)
+- **Purpose**: Prove Linera SDK usage through WASM contracts
+- **Setup**: Run `.\ scripts\show-linera-evidence.ps1`
+- **Evidence**: WASM builds, passing tests, deployment scripts
+- **Time**: 5 minutes to generate all evidence
+
+### 3. Linera Devnet (Optional - WSL2/Linux)
+- **Purpose**: Real APP_IDs from actual deployment
+- **Setup**: `./scripts/deploy-local.sh` (requires Linera CLI)
+- **Evidence**: Real chain ID, APP_IDs, GraphQL queries
+- **Time**: 10 minutes (after CLI installation)
+
+**See `docs/JUDGES-CHECKLIST.md` for complete submission evidence.**
+
 ## 🏗️ Architecture
 
 ### System Components
@@ -57,6 +81,14 @@ Verisight is a decentralized application (DApp) built on the Linera Layer-1 netw
    - Copy trading dashboard
    - Analytics dashboard with live charts
    - Governance voting interface
+
+## 🔗 Quick Links
+
+- **Judges Checklist**: [docs/JUDGES-CHECKLIST.md](docs/JUDGES-CHECKLIST.md) - Complete submission evidence
+- **Quick Start**: [QUICK-START.md](QUICK-START.md) - 3-mode setup guide
+- **Windows Workaround**: [docs/LINERA_WINDOWS_WORKAROUND.md](docs/LINERA_WINDOWS_WORKAROUND.md) - Linera CLI installation
+- **Demo Plan**: [DEMO_PLAN.md](DEMO_PLAN.md) - Recording guide
+- **On-Chain Docs**: [docs/ONCHAIN.md](docs/ONCHAIN.md) - Linera ABI & GraphQL
 
 ## 🚀 Tech Stack
 
@@ -124,11 +156,22 @@ Verisight is a decentralized application (DApp) built on the Linera Layer-1 netw
 
 ### Quick Start (3 Modes)
 
-#### Mode 1: Mock Mode (Fast - No Linera)
+#### Mode 1: Mock Mode with Deterministic Fixtures (MSW)
 ```powershell
+# Auto setup (installs deps, seeds fixtures, starts services)
+powershell -ExecutionPolicy Bypass -File .\scripts\auto-demo-setup.ps1 -OpenBrowser:$true
+
+# Or manual
 .\scripts\start-mock.ps1
 ```
 Access: http://localhost:3000
+
+**Features**:
+- MSW (Mock Service Worker) intercepts API calls
+- Deterministic fixtures (10 events, 10 markets)
+- DEMO badge in StatusBar
+- Real-time odds simulation with jitter
+- Empty states and loading skeletons
 
 #### Mode 2: Linera Devnet (Full Integration)
 ```powershell

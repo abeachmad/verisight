@@ -88,6 +88,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## Wave 03 — 2025-01-29
+
+### Added
+- **Mock Mode with MSW**:
+  - Deterministic fixtures (10 events, 10 markets) with PRNG seed
+  - MSW (Mock Service Worker) for API interception
+  - Real-time odds simulation with jitter (±0.01)
+  - Health endpoint with block height increment (5s)
+  - DEMO badge in StatusBar (purple)
+- **Frontend Components**:
+  - StatusBar: DEMO badge, status indicator, block height, latency
+  - Events: Loading skeleton (6 items), empty state, category filters
+  - MarketDetail: Evidence display (CID/TX/Chain), stake button logic
+- **Automation**:
+  - auto-demo-setup.ps1: Non-interactive orchestrator
+  - Installs deps (msw, cross-env), seeds fixtures, runs tests
+  - Auto-starts mock mode with health probes
+  - Optional git commit/push with flags
+- **Testing**:
+  - Events.test.js: Confidence badge rendering
+  - MarketDetail.test.js: Evidence display, stake button disabled states
+  - npm scripts: mock:seed, mock, mock:build, test:mock
+
+### Changed
+- start-mock.ps1: Auto-seeds fixtures before starting
+- index.js: MSW initialization when REACT_APP_DEMO_DATA=true
+- package.json: Added mock scripts and msw dependency
+
+### Fixed
+- Empty state handling in Events page
+- Stake button disabled logic (cutoff/resolved)
+- External links with rel="noopener noreferrer"
+
+### Docs
+- README: Mock Mode with MSW section
+- CHANGELOG: Wave 03 entry
+
 ## [Unreleased]
 
 ### Planned

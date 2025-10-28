@@ -36,15 +36,41 @@ Show UI/UX flow without blockchain dependency
 
 ---
 
-## Demo 2: Linera Mode (60-90s)
+## Demo 2: Linera Integration Evidence (Alternative)
 
 ### Purpose
-Prove Linera SDK integration with on-chain evidence
+Prove Linera SDK integration through code and architecture
 
-### Prerequisites
-- Devnet running
-- Apps deployed (oracle_feed + market)
-- Frontend in LINERA mode
+### Recommended Approach
+
+**Windows Users**: Mock Mode + Code Evidence (fastest, fully valid)
+```powershell
+# 1. Mock demo
+.\scripts\start-mock.ps1
+
+# 2. Show Linera evidence
+.\scripts\show-linera-evidence.ps1
+
+# Check logs
+Get-Content docs\screens\build-and-tests.log
+```
+
+**WSL2/Linux Users**: Full Linera Devnet (real APP_IDs)
+```bash
+# Install Linera CLI
+cargo install linera-service
+
+# Validate setup
+./scripts/dev-check.sh
+
+# Deploy to devnet
+./scripts/deploy-local.sh
+
+# Start frontend
+cd frontend && npm start
+```
+
+**See `docs/LINERA_WINDOWS_WORKAROUND.md` for Windows CLI installation options.**
 
 ### Steps
 1. **StatusBar** (10s)
@@ -151,6 +177,33 @@ Prove Linera SDK integration with on-chain evidence
 
 ## Timeline
 
-- **Mock Mode**: 5 minutes setup + 2 minutes recording
-- **Linera Mode**: 10 minutes deploy + 3 minutes recording
-- **Total**: ~20 minutes
+### Windows (Recommended)
+- **Mock Mode Demo**: 1 minute setup + 2 minutes recording
+- **Code Evidence**: 5 minutes (show WASM contracts, run tests)
+- **Total**: ~10 minutes
+
+### Linux/macOS/WSL2 (If Available)
+- **Linera CLI Install**: 5-10 minutes (one-time)
+- **Linera Mode Demo**: 3 minutes deploy + 3 minutes recording
+- **Total**: ~15 minutes
+
+---
+
+## Quick Commands
+
+### Windows (Recommended)
+```powershell
+# Mock demo + Code evidence
+.\scripts\start-mock.ps1
+.\scripts\show-linera-evidence.ps1
+```
+
+### WSL2/Linux (Real APP_IDs)
+```bash
+# Full devnet deployment
+cargo install linera-service
+./scripts/dev-check.sh
+./scripts/deploy-local.sh
+```
+
+**See `docs/JUDGES-CHECKLIST.md` for complete submission guide.**

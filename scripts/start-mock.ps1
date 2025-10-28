@@ -4,6 +4,19 @@ $ErrorActionPreference = 'Stop'
 Write-Host "`n=== Verisight Mock Mode ===" -ForegroundColor Cyan
 Write-Host "Starting backend + frontend (mock mode)...`n" -ForegroundColor Yellow
 
+# Set env
+$rootDir = $PSScriptRoot | Split-Path -Parent
+$envPath = "$rootDir\frontend\.env.local"
+"REACT_APP_MODE=MOCK`nREACT_APP_DEMO_DATA=true`nREACT_APP_BACKEND_URL=http://127.0.0.1:8001" | Out-File -FilePath $envPath -Encoding utf8
+Write-Host "[ENV] REACT_APP_MODE=MOCK" -ForegroundColor Cyan
+Write-Host "[ENV] REACT_APP_DEMO_DATA=true" -ForegroundColor Cyan
+Write-Host "[ENV] REACT_APP_BACKEND_URL=http://127.0.0.1:8001" -ForegroundColor Cyan
+
+# Seed fixtures
+Push-Location "$rootDir\frontend"
+npm run mock:seed 2>&1 | Out-Null
+Pop-Location
+
 # Switch to mock mode
 & "$PSScriptRoot\toggle-mode.ps1" -Mode mock
 
