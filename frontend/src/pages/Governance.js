@@ -6,6 +6,18 @@ import { Badge } from '@/components/ui/badge';
 import { Vote, CheckCircle2, Clock, Users } from 'lucide-react';
 import { useWallet } from '@/context/WalletContext';
 import { toast } from 'sonner';
+import { fmt, clamp100 } from '../utils/safeList';
+
+const STATUS = {
+  ACTIVE: { label: 'ACTIVE', icon: Clock, color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  PASSED: { label: 'PASSED', icon: CheckCircle2, color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  REJECTED: { label: 'REJECTED', icon: CheckCircle2, color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  PENDING: { label: 'PENDING', icon: Clock, color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  CLOSED: { label: 'CLOSED', icon: CheckCircle2, color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  UNKNOWN: { label: 'UNKNOWN', icon: Clock, color: 'bg-gray-700 text-gray-300 border border-gray-600' },
+};
+
+const getStatusMeta = (s) => STATUS[String(s || '').toUpperCase()] || STATUS.UNKNOWN;
 
 const Governance = () => {
   const { isConnected } = useWallet();
@@ -88,19 +100,13 @@ const Governance = () => {
   };
 
   const getStatusBadge = (status) => {
-    const configs = {
-      active: { color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: Clock },
-      passed: { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: CheckCircle2 },
-      rejected: { color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: CheckCircle2 }
-    };
-
-    const config = configs[status];
-    const Icon = config.icon;
+    const meta = getStatusMeta(status);
+    const Icon = meta.icon;
 
     return (
-      <Badge className={`${config.color} border`}>
+      <Badge className={`${meta.color} border`}>
         <Icon className="mr-1 h-3 w-3" />
-        {status.toUpperCase()}
+        {meta.label}
       </Badge>
     );
   };
@@ -193,15 +199,15 @@ const Governance = () => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-green-400 font-semibold">FOR</span>
                     <span className="text-[#A9B4C2] text-sm">
-                      {proposal.votesFor.toLocaleString()} votes ({
+                      {fmt(proposal?.votesFor)} votes ({
                         calculatePercentage(proposal.votesFor, proposal.totalVotes)
                       }%)
                     </span>
                   </div>
-                  <div className="w-full bg-[#0A0F1F] rounded-full h-3">
+                  <div className="w-full bg-[#0A0F1F] rounded-full h-3 overflow-hidden">
                     <div
                       className="bg-green-400 h-3 rounded-full smooth-transition"
-                      style={{ width: `${calculatePercentage(proposal.votesFor, proposal.totalVotes)}%` }}
+                      style={{ width: `${clamp100(calculatePercentage(proposal.votesFor, proposal.totalVotes))}%` }}
                     ></div>
                   </div>
                 </div>
@@ -211,16 +217,16 @@ const Governance = () => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-red-400 font-semibold">AGAINST</span>
                     <span className="text-[#A9B4C2] text-sm">
-                      {proposal.votesAgainst.toLocaleString()} votes ({
+                      {fmt(proposal?.votesAgainst)} votes ({
                         calculatePercentage(proposal.votesAgainst, proposal.totalVotes)
                       }%)
                     </span>
                   </div>
-                  <div className="w-full bg-[#0A0F1F] rounded-full h-3">
+                  <div className="w-full bg-[#0A0F1F] rounded-full h-3 overflow-hidden">
                     <div
                       className="bg-red-400 h-3 rounded-full smooth-transition"
                       style={{
-                        width: `${calculatePercentage(proposal.votesAgainst, proposal.totalVotes)}%`
+                        width: `${clamp100(calculatePercentage(proposal.votesAgainst, proposal.totalVotes))}%`
                       }}
                     ></div>
                   </div>
@@ -231,13 +237,13 @@ const Governance = () => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[#00FFFF] font-semibold">QUORUM PROGRESS</span>
                     <span className="text-[#A9B4C2] text-sm">
-                      {proposal.totalVotes.toLocaleString()} / {proposal.quorum.toLocaleString()}
+                      {fmt(proposal?.totalVotes)} / {fmt(proposal?.quorum)}
                     </span>
                   </div>
-                  <div className="w-full bg-[#0A0F1F] rounded-full h-2">
+                  <div className="w-full bg-[#0A0F1F] rounded-full h-2 overflow-hidden">
                     <div
                       className="bg-[#00FFFF] h-2 rounded-full glow smooth-transition"
-                      style={{ width: `${(proposal.totalVotes / proposal.quorum) * 100}%` }}
+                      style={{ width: `${clamp100((proposal.totalVotes / proposal.quorum) * 100)}%` }}
                     ></div>
                   </div>
                 </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { isDemo } from '../utils/demoFlags';
 import analyticsOverview from '../mocks/fixtures/analytics_overview.json';
+import { take } from '../utils/safeList';
 import eventsFixture from '../mocks/fixtures/events.json';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -176,7 +177,7 @@ const Dashboard = () => {
                 Recent Events
               </h2>
               <div className="space-y-4">
-                {events.slice(0, 10).map((event, idx) => (
+                {take(events, 10).map((event, idx) => (
                   <div
                     key={event.id || event.event_id || idx}
                     className="flex items-center justify-between p-4 bg-[#0A0F1F]/50 rounded-lg hover:bg-[#0A0F1F] smooth-transition"

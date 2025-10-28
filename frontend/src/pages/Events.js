@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { isDemo } from '../utils/demoFlags';
 import eventsFixture from '../mocks/fixtures/events.json';
+import { toArray } from '../utils/safeList';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -18,7 +19,7 @@ const Events = () => {
   useEffect(() => {
     if (isDemo()) {
       console.info('[DEMO] Events: using fixtures', eventsFixture.length);
-      const transformedEvents = eventsFixture.map(event => ({
+      const transformedEvents = toArray(eventsFixture).map(event => ({
         id: event.event_id,
         event_title: event.title,
         event_description: `AI-verified event in ${event.category} category`,
@@ -36,7 +37,7 @@ const Events = () => {
   const fetchEvents = async () => {
     const timeout = setTimeout(() => {
       console.warn('[FALLBACK] Using fixtures due to slow/failed fetch');
-      const transformedEvents = eventsFixture.map(event => ({
+      const transformedEvents = toArray(eventsFixture).map(event => ({
         id: event.event_id,
         event_title: event.title,
         event_description: `AI-verified event in ${event.category} category`,
@@ -55,7 +56,7 @@ const Events = () => {
     } catch (error) {
       console.error('Error fetching events:', error);
       clearTimeout(timeout);
-      const transformedEvents = eventsFixture.map(event => ({
+      const transformedEvents = toArray(eventsFixture).map(event => ({
         id: event.event_id,
         event_title: event.title,
         event_description: `AI-verified event in ${event.category} category`,
@@ -113,7 +114,7 @@ const Events = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
+          {toArray(events).map((event) => (
             <Card
               key={event.id}
               className="bg-[#141b2d] border-[#00FFFF]/30 p-6 cursor-pointer hover:border-[#00FFFF] smooth-transition"
@@ -145,7 +146,7 @@ const Events = () => {
           ))}
         </div>
 
-        {events.length === 0 && (
+        {toArray(events).length === 0 && (
           <div className="text-center py-12">
             <p className="text-[#A9B4C2]">No events found</p>
           </div>

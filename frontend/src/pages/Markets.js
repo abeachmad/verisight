@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { isDemo } from '../utils/demoFlags';
 import { normalizeOdds, oddsToPctString } from '../utils/normalizeOdds';
+import { toArray } from '../utils/safeList';
 import marketsFixture from '../mocks/fixtures/markets.json';
 import eventsFixture from '../mocks/fixtures/events.json';
 import oddsFixture from '../mocks/fixtures/odds.json';
@@ -24,7 +25,7 @@ const Markets = () => {
   useEffect(() => {
     if (isDemo()) {
       console.info('[DEMO] Markets: using fixtures', marketsFixture.length);
-      const enrichedMarkets = marketsFixture.map(market => {
+      const enrichedMarkets = toArray(marketsFixture).map(market => {
         const event = eventsFixture.find(e => e.event_id === market.event_id) || {};
         const odds = oddsFixture[market.market_id] || { yes: 0.5, no: 0.5 };
         return {
@@ -50,7 +51,7 @@ const Markets = () => {
   const fetchMarkets = async () => {
     const timeout = setTimeout(() => {
       console.warn('[DEMO] Markets fetch timeout, falling back to fixtures');
-      const enrichedMarkets = marketsFixture.map(market => {
+      const enrichedMarkets = toArray(marketsFixture).map(market => {
         const event = eventsFixture.find(e => e.event_id === market.event_id) || {};
         const odds = oddsFixture[market.market_id] || { yes: 0.5, no: 0.5 };
         return {
@@ -76,7 +77,7 @@ const Markets = () => {
       if (response.data && response.data.length > 0) {
         setMarkets(response.data);
       } else {
-        const enrichedMarkets = marketsFixture.map(market => {
+        const enrichedMarkets = toArray(marketsFixture).map(market => {
           const event = eventsFixture.find(e => e.event_id === market.event_id) || {};
           const odds = oddsFixture[market.market_id] || { yes: 0.5, no: 0.5 };
           return {
@@ -97,7 +98,7 @@ const Markets = () => {
     } catch (error) {
       clearTimeout(timeout);
       console.error('Error fetching markets, using fixtures:', error);
-      const enrichedMarkets = marketsFixture.map(market => {
+      const enrichedMarkets = toArray(marketsFixture).map(market => {
         const event = eventsFixture.find(e => e.event_id === market.event_id) || {};
         const odds = oddsFixture[market.market_id] || { yes: 0.5, no: 0.5 };
         return {
@@ -119,7 +120,7 @@ const Markets = () => {
     }
   };
 
-  const filteredMarkets = markets.filter((market) => {
+  const filteredMarkets = toArray(markets).filter((market) => {
     if (activeTab === 'all') return true;
     return market.status === activeTab;
   });
@@ -179,7 +180,7 @@ const Markets = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMarkets.map((market) => (
+            {toArray(filteredMarkets).map((market) => (
               <Link key={market.id} to={`/market/${market.id}`}>
                 <Card
                   className="bg-[#141b2d] border-[#00FFFF]/30 hover:border-[#00FFFF] smooth-transition hover:glow p-6 h-full"
@@ -217,7 +218,7 @@ const Markets = () => {
                   {/* Options Preview */}
                   {market.options && market.options.length > 0 && (
                     <div className="space-y-2 mb-4">
-                      {market.options.slice(0, 2).map((option, idx) => (
+                      {toArray(market?.options).slice(0, 2).map((option, idx) => (
                         <div
                           key={idx}
                           className="flex items-center justify-between bg-[#0A0F1F]/50 rounded-lg p-2"

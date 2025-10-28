@@ -5,4 +5,7 @@ export const isDemo = () => {
   const demoC = String(process.env.DEMO_DATA || '') === '1';
   return mode.includes('demo') || demoA || demoB || demoC;
 };
+// Back-compat so legacy imports keep working
+export const DEMO = isDemo();
+
 export const disableWS = () => String(process.env.REACT_APP_DISABLE_WS || '') === '1';
