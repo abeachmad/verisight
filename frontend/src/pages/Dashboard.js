@@ -88,6 +88,8 @@ const Dashboard = () => {
   const [confDist, setConfDist] = useState([]);
   const [volume7d, setVolume7d] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [activeTab, setActiveTab] = useState('events');
+  const [chartKey, setChartKey] = useState(0);
 
   useEffect(() => {
     const DEMO = isDemo();
@@ -132,6 +134,14 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  // Force Recharts to remeasure when tab changes
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('resize'));
+      setChartKey((k) => k + 1);
+    });
+  }, [activeTab]);
 
   if (loading) {
     return (
@@ -202,7 +212,7 @@ const Dashboard = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="events" className="mb-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList className="bg-[#141b2d] border border-[#00FFFF]/30">
             <TabsTrigger value="events" data-testid="tab-events">Events</TabsTrigger>
             <TabsTrigger value="agents" data-testid="tab-agents">AI Agents</TabsTrigger>
@@ -272,7 +282,7 @@ const Dashboard = () => {
           </TabsContent>
 
           {/* AI Agents Tab */}
-          <TabsContent value="agents" className="mt-6">
+          <TabsContent value="agents" className="mt-6" forceMount hidden={activeTab !== 'agents'}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-[#141b2d] border-[#00FFFF]/30 p-6">
                 <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
@@ -340,7 +350,9 @@ const Dashboard = () => {
                   Confidence Distribution
                 </h2>
                 {toArray(confDist).length > 0 ? (
-                  <SimpleBarChart data={confDist} xKey="range" yKey="count" />
+                  <div key={`agents-${chartKey}`}>
+                    <SimpleBarChart data={confDist} xKey="range" yKey="count" />
+                  </div>
                 ) : (
                   <div className="h-[280px] flex items-center justify-center text-[#A9B4C2]">
                     No data available
@@ -351,13 +363,15 @@ const Dashboard = () => {
           </TabsContent>
 
           {/* Markets Tab */}
-          <TabsContent value="markets" className="mt-6">
+          <TabsContent value="markets" className="mt-6" forceMount hidden={activeTab !== 'markets'}>
             <Card className="bg-[#141b2d] border-[#00FFFF]/30 p-6">
               <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                 Trading Volume (7 Days)
               </h2>
               {toArray(volume7d).length > 0 ? (
-                <SimpleLineChart data={volume7d} xKey="d" yKey="usd" />
+                <div key={`markets-${chartKey}`}>
+                  <SimpleLineChart data={volume7d} xKey="d" yKey="usd" />
+                </div>
               ) : (
                 <div className="h-[320px] flex items-center justify-center text-[#A9B4C2]">
                   No data available
@@ -367,14 +381,16 @@ const Dashboard = () => {
           </TabsContent>
 
           {/* Analytics Tab */}
-          <TabsContent value="analytics" className="mt-6">
+          <TabsContent value="analytics" className="mt-6" forceMount hidden={activeTab !== 'analytics'}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-[#141b2d] border-[#00FFFF]/30 p-6">
                 <h2 className="text-2xl font-['Orbitron'] font-semibold text-[#00FFFF] mb-6">
                   Event Categories
                 </h2>
                 {toArray(categories).length > 0 ? (
-                  <SimplePieChart data={categories} nameKey="name" valueKey="value" />
+                  <div key={`analytics-${chartKey}`}>
+                    <SimplePieChart data={categories} nameKey="name" valueKey="value" />
+                  </div>
                 ) : (
                   <div className="h-[320px] flex items-center justify-center text-[#A9B4C2]">
                     No data available
