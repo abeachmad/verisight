@@ -10,6 +10,9 @@
   --neutral: #A9B4C2;
   --surface: #141b2d;
   --surface-light: #1e293b;
+  --chart-grid: rgba(255,255,255,0.06);
+  --chart-accent: #22d3ee;
+  --chart-accent-2: #34d399;
 }
 
 * {

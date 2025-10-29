@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { isDemo } from '../utils/demoFlags';
 import eventsFixture from '../mocks/fixtures/events.json';
+import { toArray } from '../utils/safeList';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -14,11 +16,12 @@ const Events = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     if (isDemo()) {
       console.info('[DEMO] Events: using fixtures', eventsFixture.length);
-      const transformedEvents = eventsFixture.map(event => ({
+      const transformedEvents = toArray(eventsFixture).map(event => ({
         id: event.event_id,
         event_title: event.title,
         event_description: `AI-verified event in ${event.category} category`,
@@ -36,7 +39,7 @@ const Events = () => {
   const fetchEvents = async () => {
     const timeout = setTimeout(() => {
       console.warn('[FALLBACK] Using fixtures due to slow/failed fetch');
-      const transformedEvents = eventsFixture.map(event => ({
+      const transformedEvents = toArray(eventsFixture).map(event => ({
         id: event.event_id,
         event_title: event.title,
         event_description: `AI-verified event in ${event.category} category`,
@@ -55,7 +58,7 @@ const Events = () => {
     } catch (error) {
       console.error('Error fetching events:', error);
       clearTimeout(timeout);
-      const transformedEvents = eventsFixture.map(event => ({
+      const transformedEvents = toArray(eventsFixture).map(event => ({
         id: event.event_id,
         event_title: event.title,
         event_description: `AI-verified event in ${event.category} category`,
@@ -103,17 +106,30 @@ const Events = () => {
   return (
     <div className="min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-['Orbitron'] font-bold text-[#00FFFF] mb-2">
+        <div className="mb-12">
+          <h1 className="text-4xl font-['Orbitron'] font-bold text-[#00FFFF] mb-4">
             Oracle Events
           </h1>
-          <p className="text-[#A9B4C2]">
+          <p className="text-[#A9B4C2] text-lg">
             AI-verified real-world events from OracleFeed
           </p>
         </div>
 
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="bg-[#141b2d] border border-[#00FFFF]/30">
+            <TabsTrigger value="all" data-testid="tab-all">All Events</TabsTrigger>
+            <TabsTrigger value="verified" data-testid="tab-verified">Verified</TabsTrigger>
+            <TabsTrigger value="verifying" data-testid="tab-verifying">Verifying</TabsTrigger>
+            <TabsTrigger value="pending" data-testid="tab-pending">Pending</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
+          {toArray(events).filter((event) => {
+            if (activeTab === 'all') return true;
+            return event.status === activeTab;
+          }).map((event) => (
             <Card
               key={event.id}
               className="bg-[#141b2d] border-[#00FFFF]/30 p-6 cursor-pointer hover:border-[#00FFFF] smooth-transition"
@@ -145,7 +161,10 @@ const Events = () => {
           ))}
         </div>
 
-        {events.length === 0 && (
+        {toArray(events).filter((event) => {
+          if (activeTab === 'all') return true;
+          return event.status === activeTab;
+        }).length === 0 && (
           <div className="text-center py-12">
             <p className="text-[#A9B4C2]">No events found</p>
           </div>

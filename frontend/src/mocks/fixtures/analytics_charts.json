@@ -1,0 +1,25 @@
+{
+  "confidenceBuckets": [
+    { "range": "50–60", "count": 84 },
+    { "range": "60–70", "count": 132 },
+    { "range": "70–80", "count": 205 },
+    { "range": "80–90", "count": 318 },
+    { "range": "90–100", "count": 545 }
+  ],
+  "volume7d": [
+    { "d": "2025-01-01", "usd": 18200 },
+    { "d": "2025-01-02", "usd": 22100 },
+    { "d": "2025-01-03", "usd": 20500 },
+    { "d": "2025-01-04", "usd": 25150 },
+    { "d": "2025-01-05", "usd": 26300 },
+    { "d": "2025-01-06", "usd": 24100 },
+    { "d": "2025-01-07", "usd": 28950 }
+  ],
+  "categories": [
+    { "name": "Crypto", "value": 36 },
+    { "name": "Politics", "value": 22 },
+    { "name": "Sports", "value": 18 },
+    { "name": "Tech", "value": 14 },
+    { "name": "Other", "value": 10 }
+  ]
+}
