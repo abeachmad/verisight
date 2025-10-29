@@ -10,10 +10,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\kill-ports.ps
 Write-Host "`n=== Verisight Mock Mode ===" -ForegroundColor Cyan
 Write-Host "Starting backend + frontend (mock mode)...`n" -ForegroundColor Yellow
 
-# Set env
+# Force MOCK mode environment
 $rootDir = $PSScriptRoot | Split-Path -Parent
 $envPath = "$rootDir\frontend\.env.local"
+$envMainPath = "$rootDir\frontend\.env"
+
+# Create .env.local (highest priority)
 "REACT_APP_MODE=MOCK`nREACT_APP_DEMO_DATA=true`nREACT_APP_BACKEND_URL=http://127.0.0.1:8001" | Out-File -FilePath $envPath -Encoding utf8
+
+# Also update main .env to ensure consistency
+$envContent = Get-Content $envMainPath -Raw
+if ($envContent -notmatch "REACT_APP_MODE=MOCK") {
+    $envContent = "REACT_APP_MODE=MOCK`r`nREACT_APP_DEMO_DATA=true`r`n" + $envContent
+    $envContent | Out-File -FilePath $envMainPath -Encoding utf8
+}
+
 Write-Host "[ENV] REACT_APP_MODE=MOCK" -ForegroundColor Cyan
 Write-Host "[ENV] REACT_APP_DEMO_DATA=true" -ForegroundColor Cyan
 Write-Host "[ENV] REACT_APP_BACKEND_URL=http://127.0.0.1:8001" -ForegroundColor Cyan
@@ -32,9 +43,9 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendDir';
 
 Start-Sleep -Seconds 2
 
-# Start frontend in new window
+# Start frontend in new window with explicit env vars
 $frontendDir = Join-Path $PSScriptRoot '..\frontend'
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$frontendDir'; npm start"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$frontendDir'; `$env:REACT_APP_MODE='MOCK'; `$env:REACT_APP_DEMO_DATA='true'; `$env:REACT_APP_BACKEND_URL='http://127.0.0.1:8001'; npm start"
 
 Write-Host "`n[OK] Services starting..." -ForegroundColor Green
 Write-Host "Backend: http://127.0.0.1:8001" -ForegroundColor White
